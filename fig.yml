@@ -1,7 +1,7 @@
 web:
   build: .
   ports:
-   - "3000:5000"
+   - "5000:5000"
   volumes:
    - .:/src
    - /var/run/docker.sock:/tmp/docker.sock
