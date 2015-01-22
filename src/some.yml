@@ -1,7 +1,7 @@
 app:
   port: 5000
 projects:
-  node_blankline:
+  nginx_pagespeed:
     branch: master
-    from:   https://github.com/odino/node-blankline
+    from:   https://github.com/namshi/docker-node-nginx-pagespeed
     to:     localhost:5000
