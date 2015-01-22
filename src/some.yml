@@ -1,0 +1,7 @@
+app:
+  port: 5000
+projects:
+  node_blankline:
+    branch: master
+    from:   https://github.com/odino/node-blankline
+    to:     localhost:5000

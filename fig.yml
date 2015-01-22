@@ -1,0 +1,12 @@
+web:
+  build: .
+  ports:
+   - "3000:5000"
+  volumes:
+   - .:/src
+   - /var/run/docker.sock:/tmp/docker.sock
+  command: nodemon /src/src/index.js --config some.yml
+  environment:
+    ROGER_CONFIG_app_env: dev
+    ROGER_CONFIG_app_port: 5000
+    VIRTUAL_HOST: roger.swag
