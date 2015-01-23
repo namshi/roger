@@ -69,7 +69,7 @@ The format of these environment variables is
 `ROGER_CONFIG_underscore_separated_path_in_your_configuration`,
 ie. `ROGER_CONFIG_projects_private-repo_github-token=MY_SECRET_TOKEN`.
 
-For example, you can then roger specifying the
+For example, you can start roger specifying the
 oauth tokens for each project:
 
 ```
@@ -104,7 +104,7 @@ Roger has the concept of hooks, which are
 commands that you can run at certain steps
 of the build.
 
-### after_build
+### after-build
 
 After an image is built, you can run as many
 hooks as you want **in a container running
@@ -118,7 +118,7 @@ projects:
     branch:   master
     from:     https://github.com/me/my-node-app
     registry: hub.docker.io
-    after_build:
+    after-build:
       - npm test
 ```
 
@@ -135,7 +135,7 @@ TBD
 
 ## Running your own post-build scripts (ie. tests)
 
-See [after_build hooks](https://github.com/namshi/roger#after_build).
+See [after-build hooks](https://github.com/namshi/roger#after_build).
 
 ## Contributing
 
@@ -229,7 +229,7 @@ to [send a PR](https://github.com/namshi/roger/pulls)!
 
 ## Tests
 
-There are currently no tests but it's a shame.
+There are currently no tests and it's a shame :)
 
 As of now we didn't find a good way / method to
 run the whole server and check how it behaves in
