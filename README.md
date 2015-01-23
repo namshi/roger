@@ -223,22 +223,12 @@ a must.
 
 * documentation
   * how to run / extend / pass config file
-* ~~load YML config file~~
 * run a single build
-  * ~~clone a repo from master~~
   * clone a private repo
-  * ~~build from a dockerfile~~
   * push it to the dockerhub
-  * ~~push it to a private registry~~
   * build projects where the dockerfile is not in the root of the repo
   * tests
-  * ~~run post build trigger~~
-    * ~~ability to reference the just built container through a trigger~~
-    * ~~if these triggers dont work, just mark the build as failed~~
-  * ~~log the build output~~
   * comment on a github pull request if the build failed or passed 
-* ~~expose its interface through HTTP (people will protect it through some other thing like nginx if needed)~~
-  * ~~trigger builds by HTTP GET / POST~~
 * allow people to trigger builds from github
   * trigger builds on pull requests
   * trigger builds on pushes of open pull requests
