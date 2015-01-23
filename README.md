@@ -83,7 +83,14 @@ TBD
 
 ## Contributing
 
-TBD
+You can easily hack on roger by simply cloning
+this repository and then running `fig up`: you
+will have then a copy of roger and a private
+registry running on your machine so that you
+can easily hack on stuff.
+
+Problems? [Open an issue](https://github.com/namshi/roger/issues)! Suggestions? Feel free
+to [send a PR](https://github.com/namshi/roger/pulls)!
 
 # TODO
 

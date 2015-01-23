@@ -1,4 +1,4 @@
-web:
+server:
   build: .
   ports:
    - "5000:5000"
@@ -10,3 +10,7 @@ web:
     ROGER_CONFIG_app_env: dev
     ROGER_CONFIG_app_port: 5000
     VIRTUAL_HOST: roger.swag
+registry:
+  image: registry
+  ports:
+   - "5001:5000"
