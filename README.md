@@ -109,7 +109,7 @@ TBD
 
 ## Running your own post-build scripts (ie. tests)
 
-TBD
+See [after_build hooks](https://github.com/namshi/roger#after_build).
 
 ## Contributing
 
