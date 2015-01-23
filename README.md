@@ -219,7 +219,7 @@ a spike feel **uberfree** to do so, as we believe
 that, to go further, automated tests are always
 a must.
 
-# TODO
+## TODO
 
 * documentation
   * how to run / extend / pass config file
@@ -227,8 +227,6 @@ a must.
   * clone a private repo
   * push it to the dockerhub
   * build projects where the dockerfile is not in the root of the repo
-  * tests
-  * comment on a github pull request if the build failed or passed 
 * allow people to trigger builds from github
   * trigger builds on pull requests
   * trigger builds on pushes of open pull requests
