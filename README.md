@@ -1,3 +1,5 @@
+<img align="right" width="160px" src="https://openclipart.org/image/800px/svg_to_png/12949/Anonymous-man-face.png" />
+
 # Roger
 
 > A build server for docker containers
@@ -8,6 +10,16 @@ only need to specify your configuration
 and it will build your projects everytime
 you schedule a build or, for example,
 open a pull request on github.
+
+It is easy to deploy and comes with
+built-in integration with platforms
+like Github or the Docker Registry,
+which means that you can build your
+private repositories and push them to
+the Docker Hub or your own private
+registry out of the box.
+
+Ready to hack?
 
 ## Installation
 
