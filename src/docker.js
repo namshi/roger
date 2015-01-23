@@ -1,3 +1,4 @@
+var moment  = require('moment');
 var Docker  = require('dockerode');
 var Q       = require('q');
 var git     = require('./git');
@@ -13,6 +14,7 @@ var docker  = {};
  * @return promise
  */
 docker.build = function(project, branch) {
+  var now       = moment();
   var timestamp = Date.now() / 1000 | 0;
   var path      = '/tmp/roger-builds/sources/' + project.name + '/' + timestamp;
   var imageId   = project.registry + '/' + project.name;
@@ -35,7 +37,7 @@ docker.build = function(project, branch) {
       
       return docker.push(image, buildId, branch, project.registry);
     }).then(function(){
-      logger.info('Finished build of %s #SWAG', buildId)
+      logger.info('Finished build of %s in %s #SWAG', buildId, moment(now).fromNow(Boolean));
     }).catch(function(err){
       logger.error('BUILD OF %s FAILED! ("%s") #YOLO', buildId, err.message);
     });
