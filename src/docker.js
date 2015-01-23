@@ -24,7 +24,7 @@ docker.build = function(project, branch) {
   
   logger.info('Scheduled a build of %s', buildId);
   
-  return git.clone(project.from, path, {checkoutBranch: branch}).then(function(){
+  return git.clone(project.from, path, branch).then(function(){
     tar.create(tarPath, path + '/').then(function(){
       logger.info('created tarball for %s', buildId);
       

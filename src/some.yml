@@ -1,14 +1,20 @@
-app:
-  port: 5000
-projects:
-  nginx_pagespeed:
-    branch:     master
-    from:       https://github.com/namshi/docker-node-nginx-pagespeed
-    registry:   127.0.0.1:5001
-    after_build:
+app: # app-specific configuration
+  port: 5000 # port on which the app is running
+  github_token: YOUR_SECRET_TOKEN # General token to be used to authenticate to clone any project (https://github.com/settings/tokens/new)
+projects: # list of projects that are gonna be built within the app
+  nginx_pagespeed: # name of the project, will be the name of the image as well
+    branch:     master # default branch to build from, optional
+    from:       https://github.com/namshi/docker-node-nginx-pagespeed # url of the git repo
+    registry:   127.0.0.1:5001 # url of the registry to which we're gonna push, only support private registries for now
+    after_build: # hooks to execute after an image is built, before pushing it to the registry, ie. tests
       - ls -la
       - sleep 1
   redis:
     branch:   master
     from:     https://github.com/dockerfile/redis
     registry: 127.0.0.1:5001
+  privaterepo: # a private project
+    branch:       master
+    from:         https://github.com/odino/holland
+    github_token: YOUR_SECRET_TOKEN # project-specific github oauth token (https://github.com/settings/tokens/new)
+    registry:     127.0.0.1:5001
