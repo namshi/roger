@@ -16,31 +16,61 @@ docker.build = function(project, branch) {
   branch        = branch || project.branch || 'master';
   var timestamp = Date.now() / 1000 | 0;
   var path      = '/tmp/roger-builds/sources/' + project.name + '/' + timestamp;
-  var tarPath   = '/tmp/roger-builds/' + id + '-' + timestamp  + '.tar';
-  var id        = project.name + ':' + branch;
+  var imageId   = project.to + '/' + project.name;
+  var buildId   = imageId + ':' + branch;
+  var tarPath   = '/tmp/roger-builds/' + project.name + '-' + timestamp  + '.tar';
   
-  logger.info('Scheduled a build of %s', id);
+  logger.info('Scheduled a build of %s', buildId);
   
   return git.clone(project.from, path, {checkoutBranch: branch}).then(function(repository){
     tar.create(tarPath, path + '/', function(){
-      logger.info('created tarball for %s', id);
+      logger.info('created tarball for %s', buildId);
       
-      client.buildImage(tarPath, {t: id}, function (err, response){
+      client.buildImage(tarPath, {t: buildId}, function (err, response){
         if (err) {
-          logger.error('error while sending tarball to the docker server for building %s,', id, err)
+          logger.error('error while sending tarball to the docker server for building %s,', buildId, err)
         } else {
-          logger.info('Build of %s is in progress...', id);
+          logger.info('Build of %s is in progress...', buildId);
           
           response.on('data', function(out){
-            logger.info(JSON.parse(out.toString('utf-8')).stream)
+            logger.info("[%s] %s", buildId, JSON.parse(out.toString('utf-8')).stream)
           });
           
           response.on('error', function(err){
-            logger.error('error while building image %s,', id, err);
+            logger.error('error while building image %s,', buildId, err);
           });
           
           response.on('end', function(){
-            logger.error('Image %s built succesfully', id);
+            logger.info('Image %s built succesfully', buildId);
+            
+            var image = client.getImage(imageId);
+            
+            image.inspect(function(err, info){
+              if (err) {
+                logger.error('error retrieving informations for image %s,', buildId, err);
+              } else {
+                logger.info('Docker confirmed the build of %s, author %s, created on %s on docker %s', buildId, info.Author, info.Created, info.DockerVersion)
+                logger.info('Pushing %s to %s', buildId, project.to);
+
+                image.push({registry: project.to, tag: branch}, function(err, data){
+                  if (err) {
+                    logger.error('Error pushing %s,', buildId, err);
+                  } else {
+                    data.on('error', function(err){
+                      logger.error('Error while pushing %s,', buildId, err);
+                    })
+                    
+                    data.on('data', function(out){
+                      logger.info("[%s] %s", buildId, JSON.parse(out.toString('utf-8')).status)
+                    })          
+                    
+                    data.on('end', function(){
+                      logger.info("Pushed image %s to the registry at http://%s", buildId, project.to)
+                    })
+                  }
+                });
+              }
+            })
           });
         }
       });      
