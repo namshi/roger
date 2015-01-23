@@ -37,21 +37,47 @@ docker run -p 5000:5000 -ti namshi/roger
 An example configuration:
 
 ``` yaml
-app:
-  port: 5000 # port on which roger is gonna run
-projects: # list of project that will be built
-  nginx_pagespeed: # name of the project (will be the image name)
-    branch:   master # default branch, optional
-    from:     https://github.com/namshi/docker-node-nginx-pagespeed # source URL, for now only public git repos work
-    registry: 127.0.0.1:5001 # registry to push to, for now only private unauthenticated registries work
-    after_build: # a list of command that will be run on the container from the current build
+app: # app-specific configuration
+  port: 5000 # port on which the app is running
+  github-token: YOUR_SECRET_TOKEN # General token to be used to authenticate to clone any project (https://github.com/settings/tokens/new)
+projects: # list of projects that are gonna be built within the app
+  nginx-pagespeed: # name of the project, will be the name of the image as well
+    branch:     master # default branch to build from, optional
+    from:       https://github.com/namshi/docker-node-nginx-pagespeed # url of the git repo
+    registry:   127.0.0.1:5001 # url of the registry to which we're gonna push, only support private registries for now
+    after-build: # hooks to execute after an image is built, before pushing it to the registry, ie. tests
       - ls -la
       - sleep 1
-  redis: # another project, etc etc
+  redis:
     branch:   master
     from:     https://github.com/dockerfile/redis
     registry: 127.0.0.1:5001
+  private-repo: # a private project
+    branch:       master
+    from:         https://github.com/odino/holland
+    github-token: YOUR_SECRET_TOKEN # project-specific github oauth token (https://github.com/settings/tokens/new)
+    registry:     127.0.0.1:5001
 ```
+
+You can also configure the app from environment
+variables, which means that in case of sensitive
+information like Github OAuth tokens you might
+not want to store them directly in the config
+file.
+
+The format of these environment variables is
+`ROGER_CONFIG_underscore_separated_path_in_your_configuration`,
+ie. `ROGER_CONFIG_projects_private-repo_github-token=MY_SECRET_TOKEN`.
+
+For example, you can then roger specifying the
+oauth tokens for each project:
+
+```
+docker run -ti -e ROGER_CONFIG_projects_private-repo_github-token=MY_SECRET_TOKEN -p 8000:5000 roger
+```
+
+Avoid using underscores in config keys, we are trying
+to fix this in the [library we use to parse the configuration](https://github.com/namshi/reconfig/issues/15).
 
 ## Triggering builds
 
@@ -224,7 +250,6 @@ a must.
 * documentation
   * how to run / extend / pass config file
 * run a single build
-  * clone a private repo
   * push it to the dockerhub
   * build projects where the dockerfile is not in the root of the repo
 * allow people to trigger builds from github

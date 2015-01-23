@@ -13,7 +13,7 @@ var config    = yaml.safeLoad(fs.readFileSync(path.join(__dirname, argv.config),
  */
 _.each(config.projects, function(project, name) {
   config.projects[name].name = name;
-  var githubToken = project.github_token || config.app.github_token;
+  var githubToken = project['github-token'] || config.app['github-token'];
   
   if (githubToken) {
     var uri       = url.parse(project.from);

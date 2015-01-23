@@ -31,14 +31,17 @@ docker.build = function(project, branch) {
       return docker.buildImage(project, tarPath, imageId, buildId); 
     }).then(function(){
       logger.info('Image %s built succesfully', buildId);
-      logger.info('Running after_build hooks for %s', buildId);
-      
-      return hooks.run('after_build', buildId, project, client);
-    }).then(function(){
-      logger.info('Ran after_build hooks for %s', buildId);
+      logger.info('Tagging %s', buildId);
       
       return docker.tag(imageId, buildId, branch);
     }).then(function(image){
+      logger.info('Running after-build hooks for %s', buildId);
+      
+      return hooks.run('after-build', buildId, project, client).then(function(){
+        return image;
+      });
+    }).then(function(image){
+      logger.info('Ran after-build hooks for %s', buildId);
       logger.info('Pushing %s to %s', buildId, project.registry);
       
       return docker.push(image, buildId, branch, project.registry);
