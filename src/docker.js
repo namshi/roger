@@ -5,6 +5,7 @@ var git     = require('./git');
 var config  = require('./config');
 var logger  = require('./logger');
 var tar     = require('./tar');
+var hooks   = require('./hooks');
 var client  = new Docker({socketPath: '/tmp/docker.sock'});
 var docker  = {};
 
@@ -30,6 +31,11 @@ docker.build = function(project, branch) {
       return docker.buildImage(project, tarPath, imageId, buildId); 
     }).then(function(){
       logger.info('Image %s built succesfully', buildId);
+      logger.info('Running after_build hooks for %s', buildId);
+      
+      return hooks.run('after_build', buildId, project, client);
+    }).then(function(){
+      logger.info('Ran after_build hooks for %s', buildId);
       
       return docker.tag(imageId, buildId, branch);
     }).then(function(image){

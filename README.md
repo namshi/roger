@@ -44,6 +44,9 @@ projects: # list of project that will be built
     branch:   master # default branch, optional
     from:     https://github.com/namshi/docker-node-nginx-pagespeed # source URL, for now only public git repos work
     registry: 127.0.0.1:5001 # registry to push to, for now only private unauthenticated registries work
+    after_build: # a list of command that will be run on the container from the current build
+      - ls -la
+      - sleep 1
   redis: # another project, etc etc
     branch:   master
     from:     https://github.com/dockerfile/redis
@@ -69,9 +72,36 @@ The same endpoint supports `GET` requests as well,
 though it's only recommended to use this method when
 you want to manually trigger a build ([here's why](http://www.looah.com/source/view/2284)).
 
-## Adding your own hook
+## Hooks
 
-TBD
+Roger has the concept of hooks, which are
+commands that you can run at certain steps
+of the build.
+
+### after_build
+
+After an image is built, you can run as many
+hooks as you want **in a container running
+that specific image**; this means that if you
+want to run the tests of your applications you
+will most likely configure the project as follows:
+
+```
+projects:
+  my_node_app:
+    branch:   master
+    from:     https://github.com/me/my-node-app
+    registry: hub.docker.io
+    after_build:
+      - npm test
+```
+
+That is it! Now, after an image is built, before
+tagging it and sending it to the registry, roger
+will run `npm test` in your container and, if the
+tests fail, will stop the build.
+
+Neat, ah?
 
 ## Adding your own source
 
@@ -174,6 +204,7 @@ to [send a PR](https://github.com/namshi/roger/pulls)!
 # TODO
 
 * documentation
+  * how to run / extend / pass config file
 * ~~load YML config file~~
 * run a single build
   * ~~clone a repo from master~~
@@ -183,9 +214,9 @@ to [send a PR](https://github.com/namshi/roger/pulls)!
   * ~~push it to a private registry~~
   * build projects where the dockerfile is not in the root of the repo
   * tests
-  * run post install trigger
-    * ability to reference the just built container through a trigger
-    * if these triggers dont work, just mark the build as failed
+  * ~~run post build trigger~~
+    * ~~ability to reference the just built container through a trigger~~
+    * ~~if these triggers dont work, just mark the build as failed~~
   * ~~log the build output~~
   * comment on a github pull request if the build failed or passed 
 * ~~expose its interface through HTTP (people will protect it through some other thing like nginx if needed)~~
