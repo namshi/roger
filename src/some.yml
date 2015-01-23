@@ -2,6 +2,10 @@ app:
   port: 5000
 projects:
   nginx_pagespeed:
-    branch: master
-    from:   https://github.com/namshi/docker-node-nginx-pagespeed
-    to:     127.0.0.1:5001
+    branch:   master
+    from:     https://github.com/namshi/docker-node-nginx-pagespeed
+    registry: 127.0.0.1:5001
+  redis:
+    branch:   master
+    from:     https://github.com/dockerfile/redis
+    registry: 127.0.0.1:5001

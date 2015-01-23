@@ -29,14 +29,33 @@ app:
   port: 5000 # port on which roger is gonna run
 projects: # list of project that will be built
   nginx_pagespeed: # name of the project (will be the image name)
-    branch: master # default branch, optional
-    from:   https://github.com/namshi/docker-node-nginx-pagespeed # source URL, for now only public git repos work
-    to:     127.0.0.1:5001 # registry to push to, for now only private unauthenticated registries work
+    branch:   master # default branch, optional
+    from:     https://github.com/namshi/docker-node-nginx-pagespeed # source URL, for now only public git repos work
+    registry: 127.0.0.1:5001 # registry to push to, for now only private unauthenticated registries work
+  redis: # another project, etc etc
+    branch:   master
+    from:     https://github.com/dockerfile/redis
+    registry: 127.0.0.1:5001
 ```
 
 ## Triggering builds
 
-TBD
+You can simply issue a POST request to the endpoint
+`/api/builds/{project}[/{branch}]`.
+
+For example, both of these URLs are valid endpoints:
+
+* `/api/builds/redis`
+* `/api/builds/redis/master`
+
+If you don't specify a branch, the one specified in
+the configuration file will be built. If you didn't
+add a default branch in the configuration, `master`
+will be used.
+
+The same endpoint supports `GET` requests as well,
+though it's only recommended to use this method when
+you want to manually trigger a build ([here's why](http://www.looah.com/source/view/2284)).
 
 ## Adding your own hook
 
@@ -56,6 +75,7 @@ TBD
 
 # TODO
 
+* documentation
 * ~~load YML config file~~
 * run a single build
   * ~~clone a repo from master~~
@@ -63,10 +83,12 @@ TBD
   * ~~build from a dockerfile~~
   * push it to the dockerhub
   * ~~push it to a private registry~~
+  * build projects where the dockerfile is not in the root of the repo
+  * tests
   * run post install trigger
     * ability to reference the just built container through a trigger
     * if these triggers dont work, just mark the build as failed
-  * log the build output in the filesystem
+  * ~~log the build output~~
   * comment on a github pull request if the build failed or passed 
 * ~~expose its interface through HTTP (people will protect it through some other thing like nginx if needed)~~
   * ~~trigger builds by HTTP GET / POST~~

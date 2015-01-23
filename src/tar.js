@@ -1,6 +1,7 @@
 var fs      = require('fs')
 var baseTar = require('tar-fs')
 var logger  = require('./logger');
+var Q       = require('q');
 
 var tar = {};
 
@@ -13,14 +14,21 @@ var tar = {};
  */
 tar.create = function(path, sourceDirectory, cb){
   var readable = fs.createWriteStream(path);
+  var deferred = Q.defer();
 
   baseTar.pack(sourceDirectory).pipe(readable).on('error', function(err){
-    logger.error('error while creating tarball for %s, %s', path, err)
+    deferred.reject(err);
   });
+
+  readable.on('error', function(err){
+    deferred.reject(err);
+  })
   
   readable.on('finish', function(){
-    cb && cb();
+    deferred.resolve();
   });
+  
+  return deferred.promise;
 };
 
 module.exports = tar;

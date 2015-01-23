@@ -14,7 +14,8 @@ git.clone = function(repo, path, options) {
     
     return repository;
   }).catch(function(err){
-    logger.error('Error cloning %s:%s (%s)', repo, options.checkoutBranch, err.toString());
+    logger.error(err.toString());
+    throw err;
   })
 }
 
