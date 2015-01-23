@@ -201,6 +201,24 @@ e3bf2bfa935e        registry:latest       "docker-registry"      4 minutes ago  
 Problems? [Open an issue](https://github.com/namshi/roger/issues)! Suggestions? Feel free
 to [send a PR](https://github.com/namshi/roger/pulls)!
 
+## Tests
+
+There are currently no tests but it's a shame.
+
+As of now we didn't find a good way / method to
+run the whole server and check how it behaves in
+different scenarios in an automated way, as all
+tests are manually ran at the moment. Unit-testing
+the various scripts under `src` would be simple
+enough but the problem is that you should ensure
+that the whole server runs fine, doesn't crash,
+etc etc.
+
+If you have a suggestion or would like to create
+a spike feel **uberfree** to do so, as we believe
+that, to go further, automated tests are always
+a must.
+
 # TODO
 
 * documentation
