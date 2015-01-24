@@ -12,5 +12,7 @@ server:
     VIRTUAL_HOST: roger.swag
 registry:
   image: registry
+  volumes:
+   - ./registry:/tmp/registry
   ports:
    - "5001:5000"
