@@ -1,7 +1,9 @@
 var _       = require('lodash');
+var uuid    = require('node-uuid')
 var config  = require('./config');
 var logger  = require('./logger');
 var docker  = require('./docker');
+var utils   = require('./utils');
 
 var routes = {}
 
@@ -16,12 +18,14 @@ routes.build = function(req, res) {
     status = 400
   } else {
     var branch = req.params.branch || project.branch || 'master'
-    docker.build(project, branch);
+    var id     = uuid.v4();
+    options    = docker.build(project, branch, id);
     body.result = 'build scheduled'
-    body.build = {
+    body.build  = _.merge({
       project: project.name,
-      branch: branch
-    };
+      branch: branch,
+      id: id
+    }, options);
     status = 202
   }
   
@@ -33,7 +37,7 @@ routes.build = function(req, res) {
  * in the response.
  */
 function configMiddleware(req, res, next) {
-  res.body = _.assign(res.body || {}, {config: config.get()});
+  res.body = _.assign(res.body || {}, {config: utils.obfuscate(config.get())});
   
   next();
 }

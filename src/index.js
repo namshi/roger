@@ -3,12 +3,13 @@ var _       = require('lodash')
 var logger  = require('./logger');
 var config  = require('./config');
 var routes  = require('./routes');
+var utils   = require('./utils');
 
 /**
  * Print the config while booting,
  * but omit the sensitive stuff.
  */
-logger.info('using config:', JSON.stringify(config.get('projects')));
+logger.info('using config:', JSON.stringify(utils.obfuscate(config.get())));
 
 /**
  * Register the routes.

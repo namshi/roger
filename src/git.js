@@ -1,7 +1,7 @@
 var logger  = require("./logger");
 var Q       = require('q');
 var spawn   = require('child_process').spawn;
-var git     = {}
+var git     = {};
 
 /**
  * Clones the repository at the specified path,

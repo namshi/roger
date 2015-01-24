@@ -14,17 +14,17 @@ var docker  = {};
  * 
  * @return promise
  */
-docker.build = function(project, branch) {
+docker.build = function(project, branch, uuid) {
   var now       = moment();
   var timestamp = Date.now() / 1000 | 0;
-  var path      = '/tmp/roger-builds/sources/' + project.name + '/' + timestamp;
+  var path      = '/tmp/roger-builds/sources/' + uuid;
   var imageId   = project.registry + '/' + project.name;
   var buildId   = imageId + ':' + branch;
-  var tarPath   = '/tmp/roger-builds/' + project.name + '-' + timestamp  + '.tar';
+  var tarPath   = '/tmp/roger-builds/' + uuid  + '.tar';
   
   logger.info('Scheduled a build of %s', buildId);
   
-  return git.clone(project.from, path, branch).then(function(){
+  git.clone(project.from, path, branch).then(function(){
     tar.create(tarPath, path + '/').then(function(){
       logger.info('created tarball for %s', buildId);
       
@@ -51,6 +51,8 @@ docker.build = function(project, branch) {
       logger.error('BUILD OF %s FAILED! ("%s") #YOLO', buildId, err.message || err.error);
     });
   });
+  
+  return {path: path, tar: tarPath, tag: buildId}
 };
 
 /**
