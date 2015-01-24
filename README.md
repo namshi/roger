@@ -39,7 +39,12 @@ An example configuration:
 ``` yaml
 app: # app-specific configuration
   port: 5000 # port on which the app is running
-  github-token: YOUR_SECRET_TOKEN # General token to be used to authenticate to clone any project (https://github.com/settings/tokens/new)
+auth:
+  dockerhub: # these credentials are only useful if you need to push to the dockerhub
+    username: odino # your username on the dockerhub
+    email:    alessandro.nadalin@gmail.com # your...well, you get it
+    password: YOUR_DOCKERHUB_PASSWORD --> see https://github.com/namshi/roger#sensitive-data
+  github: YOUR_SECRET_TOKEN # General token to be used to authenticate to clone any project (https://github.com/settings/tokens/new)
 projects: # list of projects that are gonna be built within the app
   nginx-pagespeed: # name of the project, will be the name of the image as well
     branch:     master # default branch to build from, optional
@@ -48,16 +53,23 @@ projects: # list of projects that are gonna be built within the app
     after-build: # hooks to execute after an image is built, before pushing it to the registry, ie. tests
       - ls -la
       - sleep 1
-  redis:
-    branch:   master
-    from:     https://github.com/dockerfile/redis
-    registry: 127.0.0.1:5001
-  private-repo: # a private project
+  redis: # if you don't specify the registry, we'll assume you want to push to the dockerhub
+    branch:       master
+    from:         https://github.com/dockerfile/redis
+  privaterepo: # a private project
     branch:       master
     from:         https://github.com/odino/holland
     github-token: YOUR_SECRET_TOKEN # project-specific github oauth token (https://github.com/settings/tokens/new)
     registry:     127.0.0.1:5001
 ```
+
+Things to notice:
+
+* in order to push to the dockerhub, simply omit the registry
+* if you don't specify a default branch, we'll pick `master` for you
+* don't store your password / tokens in the config file, inject them from the environment (see [below](https://github.com/namshi/roger#sensitive-data))
+
+### Sensitive data
 
 You can also configure the app from environment
 variables, which means that in case of sensitive
@@ -229,7 +241,8 @@ to [send a PR](https://github.com/namshi/roger/pulls)!
 
 ## Tests
 
-There are currently no tests and it's a shame :)
+There are currently no automated tests and it's
+a shame :)
 
 As of now we didn't find a good way / method to
 run the whole server and check how it behaves in
@@ -250,7 +263,6 @@ a must.
 * documentation
   * how to run / extend / pass config file
 * run a single build
-  * push it to the dockerhub
   * build projects where the dockerfile is not in the root of the repo
 * allow people to trigger builds from github
   * trigger builds on pull requests

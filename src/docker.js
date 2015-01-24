@@ -48,7 +48,7 @@ docker.build = function(project, branch) {
     }).then(function(){
       logger.info('Finished build of %s in %s #SWAG', buildId, moment(now).fromNow(Boolean));
     }).catch(function(err){
-      logger.error('BUILD OF %s FAILED! ("%s") #YOLO', buildId, err.message);
+      logger.error('BUILD OF %s FAILED! ("%s") #YOLO', buildId, err.message || err.error);
     });
   });
 };
@@ -116,6 +116,33 @@ docker.tag = function(imageId, buildId, branch) {
 };
 
 /**
+ * Retrieves the authconfig needed
+ * in order to push this image.
+ * 
+ * This method is mainly here if you
+ * have builds that need to be pushed
+ * to the dockerhub.
+ * 
+ * @see http://stackoverflow.com/questions/24814714/docker-remote-api-pull-from-docker-hub-private-registry
+ */
+docker.getAuth = function(buildId, registry) {
+  var options = {};
+  
+  if (registry === config.get('auth.dockerhub.username')) {
+    logger.info('%s should be pushed to the DockerHub @ hub.docker.com', buildId);
+    
+    options = config.get('auth.dockerhub');
+    /**
+     * Ok, we can do better.
+     * But it's 5.39 in the morning.
+     */
+    options.serveraddress = '127.0.0.1';
+  }
+  
+  return options;
+};
+
+/**
  * Pushes an image to a registry.
  * 
  * @return promise
@@ -123,24 +150,35 @@ docker.tag = function(imageId, buildId, branch) {
 docker.push = function(image, buildId, branch, registry) {
   var deferred  = Q.defer();
   
-  image.push({registry: registry, tag: branch}, function(err, data){
+  image.push({tag: branch}, function(err, data){
+    var somethingWentWrong = false;
+    
     if (err) {
       deferred.reject(err);
     } else {
       data.on('error', function(err){
         deferred.reject(err);
-      })
+      });
       
       data.on('data', function(out){
-        logger.info("[%s] %s", buildId, JSON.parse(out.toString('utf-8')).status)
-      })          
+        var message = JSON.parse(out.toString('utf-8'));
+        
+        if (message.error) {
+          deferred.reject(message)
+          somethingWentWrong = true;
+        }
+        
+        logger.info("[%s] %s", buildId, message.status || message.error)
+      });        
       
       data.on('end', function(){
-        logger.info("Pushed image %s to the registry at http://%s", buildId, registry)
-        deferred.resolve();
+        if (!somethingWentWrong) {
+          logger.info("Pushed image %s to the registry at http://%s", buildId, registry)
+          deferred.resolve(); 
+        }
       })
     }
-  });
+  }, docker.getAuth(buildId, registry));
   
   return deferred.promise;
 };
