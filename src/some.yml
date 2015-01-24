@@ -4,8 +4,6 @@ auth:
     email:    alessandro.nadalin@gmail.com # your...well, you get it
     password: YOUR_DOCKERHUB_PASSWORD --> see https://github.com/namshi/roger#sensitive-data
   github: YOUR_SECRET_TOKEN # General token to be used to authenticate to clone any project (https://github.com/settings/tokens/new)
-app: # app-specific configuration
-  port: 5000 # port on which the app is running
 projects: # list of projects that are gonna be built within the app
   nginx-pagespeed: # name of the project, will be the name of the image as well
     branch:     master # default branch to build from, optional

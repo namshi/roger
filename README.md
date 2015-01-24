@@ -37,8 +37,6 @@ docker run -p 5000:5000 -ti namshi/roger
 An example configuration:
 
 ``` yaml
-app: # app-specific configuration
-  port: 5000 # port on which the app is running
 auth:
   dockerhub: # these credentials are only useful if you need to push to the dockerhub
     username: odino # your username on the dockerhub
@@ -90,6 +88,14 @@ docker run -ti -e ROGER_CONFIG_projects_private-repo_github-token=MY_SECRET_TOKE
 
 Avoid using underscores in config keys, we are trying
 to fix this in the [library we use to parse the configuration](https://github.com/namshi/reconfig/issues/15).
+
+> At the moment tokens and passwords are printed to
+> stdout when the application logs stuff.
+>
+> The long-term plan is to remove these information
+> from the logs by obfuscating them.
+>
+> Bear with us :)
 
 ## Triggering builds
 
@@ -260,6 +266,7 @@ a must.
 
 ## TODO
 
+* obfuscate passwords / tokens in the logs
 * documentation
   * how to run / extend / pass config file
 * run a single build
