@@ -110,7 +110,7 @@ project at `/api/projects/{project}`, ie.
 # GET /api/projects/redis
 {
     "branch":   "master",
-    "from":     "https://YOUR_SECRET_TOKEN@github.com/dockerfile/redis",
+    "from":     "https://github.com/dockerfile/redis",
     "name":     "redis",
     "registry": "odino"
 }
@@ -135,8 +135,8 @@ The same endpoint supports `GET` requests as well,
 though it's only recommended to use this method when
 you want to manually trigger a build ([here's why](http://www.looah.com/source/view/2284)).
 
-```
-POST /api/projects/redis:master/build
+``` json
+# POST /api/projects/redis:master/build
 {
     "result": "build scheduled",
     "build": {
@@ -155,8 +155,8 @@ POST /api/projects/redis:master/build
 You can access roger's configuration
 at `/api/config`.
 
-```
-GET /api/config
+``` json
+# GET /api/config
 {
     "auth": {
         "dockerhub": {
@@ -169,7 +169,7 @@ GET /api/config
     "projects": {
         "nginx-pagespeed": {
             "branch": "master",
-            "from": "https://YOUR_SECRET_TOKEN@github.com/namshi/docker-node-nginx-pagespeed",
+            "from": "https://github.com/namshi/docker-node-nginx-pagespeed",
             "registry": "127.0.0.1:5001",
             "after-build": [
                 "ls -la",
@@ -179,7 +179,7 @@ GET /api/config
         },
         "redis": {
             "branch": "master",
-            "from": "https://YOUR_SECRET_TOKEN@github.com/dockerfile/redis",
+            "from": "https://github.com/dockerfile/redis",
             "name": "redis",
             "registry": "odino"
         },
