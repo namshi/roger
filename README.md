@@ -56,7 +56,7 @@ projects: # list of projects that are gonna be built within the app
     from:         https://github.com/dockerfile/redis
   privaterepo: # a private project
     branch:       master
-    from:         https://github.com/odino/holland
+    from:         https://github.com/odino/secret
     github-token: YOUR_SECRET_TOKEN # project-specific github oauth token (https://github.com/settings/tokens/new)
     registry:     127.0.0.1:5001
 ```
@@ -97,15 +97,34 @@ to fix this in the [library we use to parse the configuration](https://github.co
 >
 > Bear with us :)
 
-## Triggering builds
+## APIs
+
+### List projects
+
+You can get a list of projects at
+`/api/projects/` or of a specific
+project at `/api/projects/{project}`, ie.
+`/api/projects/redis/`
+
+``` json
+# GET /api/projects/redis
+{
+    "branch":   "master",
+    "from":     "https://YOUR_SECRET_TOKEN@github.com/dockerfile/redis",
+    "name":     "redis",
+    "registry": "odino"
+}
+```
+
+### Triggering builds
 
 You can simply issue a POST request to the endpoint
-`/api/builds/{project}[/{branch}]`.
+`/api/projects/{project}[:{branch}]/build`.
 
 For example, both of these URLs are valid endpoints:
 
-* `/api/builds/redis`
-* `/api/builds/redis/master`
+* `/api/projects/redis/build`
+* `/api/projects/redis:master/build`
 
 If you don't specify a branch, the one specified in
 the configuration file will be built. If you didn't
@@ -115,6 +134,65 @@ will be used.
 The same endpoint supports `GET` requests as well,
 though it's only recommended to use this method when
 you want to manually trigger a build ([here's why](http://www.looah.com/source/view/2284)).
+
+```
+POST /api/projects/redis:master/build
+{
+    "result": "build scheduled",
+    "build": {
+        "project": "redis",
+        "branch": "master",
+        "id": "27f466aa-fce9-4323-9642-55f4cf760506",
+        "path": "/tmp/roger-builds/sources/27f466aa-fce9-4323-9642-55f4cf760506",
+        "tar": "/tmp/roger-builds/27f466aa-fce9-4323-9642-55f4cf760506.tar",
+        "tag": "odino/redis:master"
+    }
+}
+```
+
+### List configuration
+
+You can access roger's configuration
+at `/api/config`.
+
+```
+GET /api/config
+{
+    "auth": {
+        "dockerhub": {
+            "username": "odino",
+            "email": "alessandro.nadalin@gmail.com",
+            "password": "*****"
+        },
+        "github": "*****"
+    },
+    "projects": {
+        "nginx-pagespeed": {
+            "branch": "master",
+            "from": "https://YOUR_SECRET_TOKEN@github.com/namshi/docker-node-nginx-pagespeed",
+            "registry": "127.0.0.1:5001",
+            "after-build": [
+                "ls -la",
+                "sleep 1"
+            ],
+            "name": "nginx-pagespeed"
+        },
+        "redis": {
+            "branch": "master",
+            "from": "https://YOUR_SECRET_TOKEN@github.com/dockerfile/redis",
+            "name": "redis",
+            "registry": "odino"
+        },
+        "privaterepo": {
+            "branch": "master",
+            "from": "https://YOUR_SECRET_TOKEN@github.com/odino/secret",
+            "github-token": "*****",
+            "registry": "127.0.0.1:5001",
+            "name": "privaterepo"
+        }
+    }
+}
+```
 
 ## Hooks
 
