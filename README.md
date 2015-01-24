@@ -225,14 +225,6 @@ tests fail, will stop the build.
 
 Neat, ah?
 
-## Adding your own source
-
-TBD
-
-## Running your own post-build scripts (ie. tests)
-
-See [after-build hooks](https://github.com/namshi/roger#after_build).
-
 ## Contributing
 
 You can easily hack on roger by simply cloning
@@ -344,6 +336,7 @@ a must.
 
 ## TODO
 
+* align logs so that they have the same format
 * api
   * `/api/test` an api that takes an example config file, runs builds and asserts their output
   * `/api/build/all` trigger builds for all projects
