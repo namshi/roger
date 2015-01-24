@@ -266,6 +266,10 @@ a must.
 
 ## TODO
 
+* api
+  * `/api/test` an api that takes an example config file, runs builds and asserts their output
+  * `/api/build/all` trigger builds for all projects
+  * `/api/build/{id}/status` track the progress of a build (will log the build output to a file and will stream it through res.write(...))
 * obfuscate passwords / tokens in the logs
 * documentation
   * how to run / extend / pass config file
