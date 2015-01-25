@@ -130,6 +130,22 @@ function linksEmbedderMiddleare(req, res, next) {
   })
   
   next();
+};
+
+/**
+ * 404 page: checks whether the reesponse
+ * body is set, if not it assumes no one
+ * could handle this request.
+ */
+function notFoundMiddleware(req, res, next){
+  if (!res.body) {
+    res.status(404).send({
+      error: 'The page requested exists in your dreams',
+      code: 404
+    }); 
+  }
+  
+  next();
 }
 
 /**
@@ -145,7 +161,8 @@ routes.bind = function(app) {
   app.get('/api/projects/:project/build', routes.build);
   app.post('/api/projects/:project/build', routes.build);
   
-  app.use(obfuscateMiddleware)
+  app.use(notFoundMiddleware);
+  app.use(obfuscateMiddleware);
   app.use(linksEmbedderMiddleare);
   
   /**
