@@ -22,6 +22,6 @@ routes.bind(app);
  * 
  * #swag
  */
-var port = 5000;
+var port = 6600;
 app.listen(port);
 console.log('Roger running on port', port);

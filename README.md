@@ -29,7 +29,15 @@ itself:
 ```
 docker build -t namshi/roger .
 
-docker run -p 5000:5000 -ti namshi/roger
+docker run -ti -p 6600:6600 -v /path/to/your/config.yml:/config.yml -v /var/run/docker.sock:/tmp/docker.sock namshi/roger
+```
+
+If roger starts correctly, you should see
+something like:
+
+```
+2015-01-27T17:52:50.827Z - info: using config: {...}}
+Roger running on port 5000
 ```
 
 ## Configuration

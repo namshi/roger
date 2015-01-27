@@ -1,7 +1,7 @@
 server:
   build: .
   ports:
-   - "5000:5000"
+   - "6600:6600"
   volumes:
    - .:/src
    - /var/run/docker.sock:/tmp/docker.sock
@@ -14,4 +14,4 @@ registry:
   volumes:
    - ./registry:/tmp/registry
   ports:
-   - "5001:5000"
+   - "5000:5000"

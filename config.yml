@@ -8,7 +8,7 @@ projects: # list of projects that are gonna be built within the app
   nginx-pagespeed: # name of the project, will be the name of the image as well
     branch:     master # default branch to build from, optional
     from:       https://github.com/namshi/docker-node-nginx-pagespeed # url of the git repo
-    registry:   127.0.0.1:5001 # url of the registry to which we're gonna push, only support private registries for now
+    registry:   127.0.0.1:5000 # url of the registry to which we're gonna push, only support private registries for now
     after-build: # hooks to execute after an image is built, before pushing it to the registry, ie. tests
       - ls -la
       - sleep 1
@@ -19,4 +19,4 @@ projects: # list of projects that are gonna be built within the app
     branch:       master
     from:         https://github.com/odino/holland
     github-token: YOUR_SECRET_TOKEN # project-specific github oauth token (https://github.com/settings/tokens/new)
-    registry:     127.0.0.1:5001
+    registry:     127.0.0.1:5000
