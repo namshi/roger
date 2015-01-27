@@ -13,4 +13,4 @@ WORKDIR /src
 RUN npm install
 
 EXPOSE  6600
-CMD ["node", "src/index.js", "--config", "/config.yml"]
+CMD ["clusterjs", "src/index.js", "--config", "/config.yml"]

@@ -42,7 +42,8 @@ Roger running on port 5000
 
 ## Configuration
 
-An example configuration:
+Roger will read a `/config.yml` file that you
+need to mount in the container:
 
 ``` yaml
 auth:
