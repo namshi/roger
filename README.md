@@ -208,6 +208,48 @@ you want to manually trigger a build ([here's why](http://www.looah.com/source/v
 }
 ```
 
+### Build status
+
+You can see a build's status by visiting
+`/api/builds/BUILD_ID`.
+
+```
+2015-01-27T19:18:34.810Z - info: [127.0.0.1:5000/nginx-pagespeed:something] Scheduled a build of cb5ea16d-5266-4018-b571-954e75b825e0
+2015-01-27T19:18:34.810Z - info: Cloning https://github.com/namshi/docker-node-nginx-pagespeed:something in /tmp/roger-builds/sources/cb5ea16d-5266-4018-b571-954e75b825e0
+2015-01-27T19:18:34.816Z - info: git clone https://github.com/namshi/docker-node-nginx-pagespeed: Cloning into '/tmp/roger-builds/sources/cb5ea16d-5266-4018-b571-954e75b825e0'...
+
+2015-01-27T19:18:37.274Z - info: [127.0.0.1:5000/nginx-pagespeed:something] Created tarball for cb5ea16d-5266-4018-b571-954e75b825e0
+2015-01-27T19:18:37.365Z - info: Build of 127.0.0.1:5000/nginx-pagespeed:something is in progress...
+2015-01-27T19:18:37.365Z - info: [127.0.0.1:5000/nginx-pagespeed:something] Step 0 : FROM dockerfile/nodejs
+
+2015-01-27T19:18:37.365Z - info: [127.0.0.1:5000/nginx-pagespeed:something]  ---> c08280595650
+...
+...
+...
+```
+
+This is the only API that uses plaintext
+responses.
+
+When you trigger a build, you will receive
+a link to the build status API:
+
+```
+{
+    "result": "build scheduled",
+    "build": {
+        ...
+        "status": "/api/builds/cb5ea16d-5266-4018-b571-954e75b825e0",
+        ...
+    }
+    ...
+}
+```
+
+You can just visit that URL to see the build
+output, which will be streamed until the build
+is complete.
+
 ### Build all projects
 
 Sometimes it is useful to trigger builds for
@@ -417,4 +459,3 @@ a must.
 
 * api
   * `/api/test` an api that takes an example config file, runs builds and asserts their output
-  * `/api/build/{id}/status` track the progress of a build (will log the build output to a file and will stream it through res.write(...))

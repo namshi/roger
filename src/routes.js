@@ -1,13 +1,14 @@
-var _       = require('lodash');
-var uuid    = require('node-uuid')
-var config  = require('./config');
-var logger  = require('./logger');
-var docker  = require('./docker');
-var utils   = require('./utils');
-var github  = require('./github');
-var bodyParser = require('body-parser')
-
-var routes = {}
+var bodyParser  = require('body-parser')
+var _           = require('lodash');
+var fs          = require('fs');
+var uuid        = require('node-uuid');
+var growingFile = require('growing-file');
+var config      = require('./config');
+var logger      = require('./logger');
+var docker      = require('./docker');
+var utils       = require('./utils');
+var github      = require('./github');
+var routes      = {}
 
 /**
  * Schedules a build and returns
@@ -24,7 +25,8 @@ function scheduleBuild(project, branch) {
   return _.merge({
     project: project.name,
     branch: project.branch,
-    id: id
+    id: id,
+    status: '/api/builds/' + id
   }, info);
 };
 
@@ -82,6 +84,24 @@ routes.project = function(req, res, next) {
   }
   
   res.status(status).body = body;
+  next();
+};
+
+/**
+ * Shows the progressive status of the build
+ * by keeping an eye on its log file.
+ */
+routes.buildStatus = function(req, res, next) {
+  var logFile = '/tmp/roger-builds/' + req.params.build + '.log';
+  
+  if (fs.existsSync(logFile)) {
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+  
+    growingFile.open(logFile).pipe(res);
+    return;
+  }
+  
+  res.status(404);
   next();
 };
 
@@ -213,6 +233,7 @@ routes.bind = function(app) {
   app.get('/api/projects/:project', routes.project);
   app.get('/api/projects/:project/build', routes.build);
   app.post('/api/projects/:project/build', routes.build);
+  app.get('/api/builds/:build', routes.buildStatus);
   app.post('/hooks/github', routes.buildFromGithubHook);
   
   app.use(notFoundMiddleware);

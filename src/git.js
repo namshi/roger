@@ -1,6 +1,5 @@
 var Q       = require('q');
 var spawn   = require('child_process').spawn;
-var logger  = require("./logger");
 var utils   = require("./utils");
 var git     = {};
 
@@ -11,7 +10,7 @@ var git     = {};
  * 
  * @return promise
  */
-git.clone = function(repo, path, branch) {
+git.clone = function(repo, path, branch, logger) {
   logger.info('Cloning %s:%s in %s', utils.obfuscateString(repo), branch, path);
   var deferred = Q.defer();
   var clone    = spawn('git', ['clone', '-b', branch, '--single-branch', repo, path]);

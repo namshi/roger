@@ -1,6 +1,5 @@
 var Q       = require('q');
 var _       = require('lodash');
-var logger  = require('./logger');
 var hooks = {};
 
 /**
@@ -33,7 +32,7 @@ function promisifyHook(dockerClient, buildId, command) {
  * 
  * @return promise
  */
-hooks.run = function(event, buildId, project, dockerClient) {
+hooks.run = function(event, buildId, project, dockerClient, logger) {
   var deferred = Q.defer();
   var hooks    = project[event];
   var promises = [];
