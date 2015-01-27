@@ -22,33 +22,33 @@ docker.build = function(project, branch, uuid) {
   var buildId   = imageId + ':' + branch;
   var tarPath   = '/tmp/roger-builds/' + uuid  + '.tar';
   
-  logger.info('Scheduled a build of %s', buildId);
+  logger.info('[%s] Scheduled a build of %s', buildId, uuid);
   
   git.clone(project.from, path, branch).then(function(){
     tar.create(tarPath, path + '/').then(function(){
-      logger.info('created tarball for %s', buildId);
+      logger.info('[%s] Created tarball for %s', buildId, uuid);
       
       return docker.buildImage(project, tarPath, imageId, buildId); 
     }).then(function(){
-      logger.info('Image %s built succesfully', buildId);
-      logger.info('Tagging %s', buildId);
+      logger.info('[%s] %s built succesfully', buildId, uuid);
+      logger.info('[%s] Tagging %s', buildId, uuid);
       
       return docker.tag(imageId, buildId, branch);
     }).then(function(image){
-      logger.info('Running after-build hooks for %s', buildId);
+      logger.info('[%s] Running after-build hooks for %s', buildId, uuid);
       
       return hooks.run('after-build', buildId, project, client).then(function(){
         return image;
       });
     }).then(function(image){
-      logger.info('Ran after-build hooks for %s', buildId);
-      logger.info('Pushing %s to %s', buildId, project.registry);
+      logger.info('[%s] Ran after-build hooks for %s', buildId, uuid);
+      logger.info('[%s] Pushing %s to %s', buildId, uuid, project.registry);
       
-      return docker.push(image, buildId, branch, project.registry);
+      return docker.push(image, buildId, uuid, branch, project.registry);
     }).then(function(){
-      logger.info('Finished build of %s in %s #SWAG', buildId, moment(now).fromNow(Boolean));
+      logger.info('[%s] Finished build %s in %s #SWAG', buildId, uuid, moment(now).fromNow(Boolean));
     }).catch(function(err){
-      logger.error('BUILD OF %s FAILED! ("%s") #YOLO', buildId, err.message || err.error);
+      logger.error('[%s] BUILD %s FAILED! ("%s") #YOLO', buildId, uuid, err.message || err.error);
     });
   });
   
@@ -131,7 +131,7 @@ docker.getAuth = function(buildId, registry) {
   var options = {};
   
   if (registry === config.get('auth.dockerhub.username')) {
-    logger.info('%s should be pushed to the DockerHub @ hub.docker.com', buildId);
+    logger.info('[%s] Image should be pushed to the DockerHub @ hub.docker.com', buildId);
     
     options = config.get('auth.dockerhub');
     /**
@@ -149,7 +149,7 @@ docker.getAuth = function(buildId, registry) {
  * 
  * @return promise
  */
-docker.push = function(image, buildId, branch, registry) {
+docker.push = function(image, buildId, uuid, branch, registry) {
   var deferred  = Q.defer();
   
   image.push({tag: branch}, function(err, data){
@@ -175,7 +175,7 @@ docker.push = function(image, buildId, branch, registry) {
       
       data.on('end', function(){
         if (!somethingWentWrong) {
-          logger.info("Pushed image %s to the registry at http://%s", buildId, registry)
+          logger.info("[%s] Pushed image of build %s to the registry at http://%s", buildId, uuid, registry)
           deferred.resolve(); 
         }
       })

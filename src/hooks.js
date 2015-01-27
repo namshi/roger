@@ -39,17 +39,17 @@ hooks.run = function(event, buildId, project, dockerClient) {
   var promises = [];
   
   if (_.isArray(hooks)) {
-    logger.info('Running %s hooks for %s', event, buildId);
+    logger.info('[%s] Running %s hooks', buildId, event);
     
     _.each(hooks, function(command) {
-      logger.info('Running %s hook "%s" for %s', event, command, buildId);
+      logger.info('[%s] Running %s hook "%s"', buildId, event, command);
       
       promises.push(promisifyHook(dockerClient, buildId, command));
     });
     
     return Q.all(promises); 
   } else {
-    logger.info('No %s hooks for %s', event, buildId);
+    logger.info('[%s] No %s hooks to run', buildId, event);
     deferred.resolve();
   }
   
