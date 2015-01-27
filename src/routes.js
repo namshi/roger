@@ -9,6 +9,14 @@ var bodyParser = require('body-parser')
 
 var routes = {}
 
+/**
+ * Schedules a build and returns
+ * information about it, like it's
+ * build ID, while we keep it running
+ * in background.
+ * 
+ * @return object
+ */
 function scheduleBuild(project, branch) {
   var id   = uuid.v4();
   var info = docker.build(project, branch, id);
@@ -20,6 +28,9 @@ function scheduleBuild(project, branch) {
   }, info);
 };
 
+/**
+ * Builds all configured projects.
+ */
 routes.buildAll = function(req, res, next) {
   var body = {builds: []};
   

@@ -6,7 +6,7 @@ var argv      = require('yargs').argv;
 var _         = require('lodash');
 var url       = require('url');
 var logger    = require('./logger');
-var config    = yaml.safeLoad(fs.readFileSync(path.join(__dirname, argv.config), 'utf8'));
+var config    = yaml.safeLoad(fs.readFileSync(path.join(argv.config), 'utf8'));
 
 /**
  * Add the project name

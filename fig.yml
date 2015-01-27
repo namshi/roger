@@ -5,7 +5,8 @@ server:
   volumes:
    - .:/src
    - /var/run/docker.sock:/tmp/docker.sock
-  command: nodemon /src/src/index.js --config some.yml
+   - ./config.yml:/config.yml
+  command: nodemon /src/src/index.js --config /config.yml
   environment:
     VIRTUAL_HOST: roger.swag
 registry:
