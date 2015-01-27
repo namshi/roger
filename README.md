@@ -61,12 +61,6 @@ projects: # list of projects that are gonna be built within the app
     registry:     127.0.0.1:5001
 ```
 
-Things to notice:
-
-* in order to push to the dockerhub, simply omit the registry
-* if you don't specify a default branch, we'll pick `master` for you
-* don't store your password / tokens in the config file, inject them from the environment (see [below](https://github.com/namshi/roger#sensitive-data))
-
 ### Sensitive data
 
 You can also configure the app from environment
@@ -88,14 +82,6 @@ docker run -ti -e ROGER_CONFIG_projects_private-repo_github-token=MY_SECRET_TOKE
 
 Avoid using underscores in config keys, we are trying
 to fix this in the [library we use to parse the configuration](https://github.com/namshi/reconfig/issues/15).
-
-> At the moment tokens and passwords are printed to
-> stdout when the application logs stuff.
->
-> The long-term plan is to remove these information
-> from the logs by obfuscating them.
->
-> Bear with us :)
 
 ## APIs
 
@@ -193,6 +179,37 @@ at `/api/config`.
     }
 }
 ```
+
+## Build triggers
+
+Roger exposes a simple HTTP interface
+and provides integration with some SCM
+provider, ie. GitHub.
+
+### Github
+
+Simply add a new webhook to your repo at
+`https://github.com/YOU/YOUR_PROGECT/settings/hooks/new`
+and configure it as follows:
+
+![github webhook](https://raw.githubusercontent.com/namshi/roger/master/bin/images/webhook.png?token=AAUC5KUrL2asRgmAob6t_Lxp0XVB_LCmks5U0MHgwA%3D%3D)
+
+Roger will now that the hook refers to a
+particular project because it matches the
+repository name with the `from` parameter
+of your project:
+
+``` yaml
+# Your repo full name is hello/world
+
+projects:
+  hello-world:
+    branch:     master
+    from:       https://github.com/hello/world # we are matching this
+```
+
+Roger will build everytime you push to
+github or a new tag is created.
 
 ## Hooks
 
@@ -346,6 +363,3 @@ a must.
   * how to run / extend / pass config file
 * run a single build
   * build projects where the dockerfile is not in the root of the repo
-* allow people to trigger builds from github
-  * trigger builds on pull requests
-  * trigger builds on pushes of open pull requests
