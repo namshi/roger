@@ -15,6 +15,7 @@ var docker  = {};
  * @return promise
  */
 docker.build = function(project, branch, uuid) {
+  var branch    = branch || 'master';
   var now       = moment();
   var timestamp = Date.now() / 1000 | 0;
   var path      = '/tmp/roger-builds/sources/' + uuid;

@@ -198,6 +198,58 @@ you want to manually trigger a build ([here's why](http://www.looah.com/source/v
 }
 ```
 
+### Build all projects
+
+Sometimes it is useful to trigger builds for
+all projects, especially when the server restarts
+or simply because your registry might have gone
+on vacation: simply hit `/api/build-all` and all
+projects will build their default branch in
+parallel.
+
+``` json
+# POST /api/build-all
+{
+    "builds": [
+        {
+            "project": "nginx-pagespeed",
+            "branch": "master",
+            "id": "c57e73ee-3f15-47ee-b452-a9efc5255fc5",
+            "path": "/tmp/roger-builds/sources/c57e73ee-3f15-47ee-b452-a9efc5255fc5",
+            "tar": "/tmp/roger-builds/c57e73ee-3f15-47ee-b452-a9efc5255fc5.tar",
+            "tag": "127.0.0.1:5001/nginx-pagespeed:master"
+        },
+        {
+            "project": "redis",
+            "branch": "master",
+            "id": "3618ea27-7463-4166-967c-773e7abbdab6",
+            "path": "/tmp/roger-builds/sources/3618ea27-7463-4166-967c-773e7abbdab6",
+            "tar": "/tmp/roger-builds/3618ea27-7463-4166-967c-773e7abbdab6.tar",
+            "tag": "odino/redis:master"
+        },
+        {
+            "project": "privaterepo",
+            "branch": "master",
+            "id": "2d4be379-36cf-4c88-834f-08c1902fcb68",
+            "path": "/tmp/roger-builds/sources/2d4be379-36cf-4c88-834f-08c1902fcb68",
+            "tar": "/tmp/roger-builds/2d4be379-36cf-4c88-834f-08c1902fcb68.tar",
+            "tag": "127.0.0.1:5001/privaterepo:master"
+        }
+    ],
+    "_links": {
+        "config": {
+            "href": "/api/config"
+        },
+        "projects": {
+            "href": "/api/projects"
+        },
+        "self": {
+            "href": "/api/build-all"
+        }
+    }
+}
+```
+
 ### List configuration
 
 You can access roger's configuration
@@ -353,10 +405,8 @@ a must.
 
 ## TODO
 
-* align logs so that they have the same format
 * api
   * `/api/test` an api that takes an example config file, runs builds and asserts their output
-  * `/api/build/all` trigger builds for all projects
   * `/api/build/{id}/status` track the progress of a build (will log the build output to a file and will stream it through res.write(...))
 * documentation
   * how to run / extend / pass config file

@@ -9,6 +9,28 @@ var bodyParser = require('body-parser')
 
 var routes = {}
 
+function scheduleBuild(project, branch) {
+  var id   = uuid.v4();
+  var info = docker.build(project, branch, id);
+  
+  return _.merge({
+    project: project.name,
+    branch: project.branch,
+    id: id
+  }, info);
+};
+
+routes.buildAll = function(req, res, next) {
+  var body = {builds: []};
+  
+  _.each(config.get('projects'), function(project){
+    body.builds.push(scheduleBuild(project, project.branch));
+  });
+  
+  res.status(202).body = body;
+  next();
+}
+
 /**
  * Triggers a build of a project.
  */
@@ -16,23 +38,16 @@ routes.build = function(req, res, next) {
   var body = res.body || {},
       status = 200,
       project = config.get('projects.' + req.params.project);
-  
+
   if (!project) {
     body.error = 'invalid project';
     body.project = project;
     body.availableProjects = Object.keys(config.get('projects'));
     status = 400
   } else {
-    var branch = req.params.branch || project.branch || 'master'
-    var id     = uuid.v4();
-    options    = docker.build(project, branch, id);
-    body.result = 'build scheduled'
-    body.build  = _.merge({
-      project: project.name,
-      branch: branch,
-      id: id
-    }, options);
-    status = 202
+    body.result = 'build scheduled';
+    body.build  = scheduleBuild(project, req.params.branch || project.branch);
+    status      = 202;
   }
   
   res.status(status).body = body;
@@ -86,15 +101,9 @@ routes.buildFromGithubHook = function(req, res) {
   var info = github.getBuildInfoFromHook(req);
   
   if (info) {
-    var id      = uuid.v4();
-    var options = docker.build(info.project, info.branch, id);
     var body    = {};  
     body.result = 'build scheduled'
-    body.build  = _.merge({
-      project: info.project.name,
-      branch: info.branch,
-      id: id
-    }, options);
+    body.build  = scheduleBuild(info.project, info.branch);
     
     res.status(202).send(body);
     return;
@@ -144,6 +153,7 @@ function obfuscateMiddleware(req, res, next) {
 function linksEmbedderMiddleare(req, res, next) {
   var links = {
     config:   '/api/config',
+    buildAll: '/api/build-all',
     projects: '/api/projects',
     self:     req.url,
   }
@@ -188,6 +198,7 @@ routes.bind = function(app) {
   
   app.get('/api/config', routes.config);
   app.get('/api/projects', routes.projects);
+  app.post('/api/build-all', routes.buildAll);
   app.get('/api/projects/:project', routes.project);
   app.get('/api/projects/:project/build', routes.build);
   app.post('/api/projects/:project/build', routes.build);
