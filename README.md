@@ -64,10 +64,11 @@ projects: # list of projects that are gonna be built within the app
     branch:       master
     from:         https://github.com/dockerfile/redis
   privaterepo: # a private project
-    branch:       master
-    from:         https://github.com/odino/secret
-    github-token: YOUR_SECRET_TOKEN # project-specific github oauth token (https://github.com/settings/tokens/new)
-    registry:     127.0.0.1:5001
+    branch:         master
+    from:           https://github.com/odino/secret
+    dockerfilePath: some/subdir # location of the dockerfile, omit this if it's in the root of the repo
+    github-token:   YOUR_SECRET_TOKEN # project-specific github oauth token (https://github.com/settings/tokens/new)
+    registry:       127.0.0.1:5001
 ```
 
 ### Sensitive data
@@ -417,7 +418,3 @@ a must.
 * api
   * `/api/test` an api that takes an example config file, runs builds and asserts their output
   * `/api/build/{id}/status` track the progress of a build (will log the build output to a file and will stream it through res.write(...))
-* documentation
-  * how to run / extend / pass config file
-* run a single build
-  * build projects where the dockerfile is not in the root of the repo

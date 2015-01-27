@@ -1,4 +1,5 @@
 var moment  = require('moment');
+var p       = require('path');
 var Docker  = require('dockerode');
 var Q       = require('q');
 var git     = require('./git');
@@ -26,7 +27,13 @@ docker.build = function(project, branch, uuid) {
   logger.info('[%s] Scheduled a build of %s', buildId, uuid);
   
   git.clone(project.from, path, branch).then(function(){
-    tar.create(tarPath, path + '/').then(function(){
+    var dockerfilePath = path;
+    
+    if (project.dockerfilePath) {
+      dockerfilePath = p.join(path, project.dockerfilePath);
+    }
+    
+    tar.create(tarPath,  dockerfilePath + '/').then(function(){
       logger.info('[%s] Created tarball for %s', buildId, uuid);
       
       return docker.buildImage(project, tarPath, imageId, buildId); 
