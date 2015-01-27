@@ -4,6 +4,8 @@ var config  = require('./config');
 var logger  = require('./logger');
 var docker  = require('./docker');
 var utils   = require('./utils');
+var github  = require('./github');
+var bodyParser = require('body-parser')
 
 var routes = {}
 
@@ -71,6 +73,34 @@ routes.projects = function(req, res, next) {
 routes.config = function(req, res, next) {
   res.status(200).body = config.get();
   next();
+};
+
+/**
+ * Trigger a build from a github hook.
+ * 
+ * Github will hit this URL and we will
+ * extract from the hook the information
+ * needed to schedule a build.
+ */
+routes.buildFromGithubHook = function(req, res) {
+  var info = github.getBuildInfoFromHook(req);
+  
+  if (info) {
+    var id      = uuid.v4();
+    var options = docker.build(info.project, info.branch, id);
+    var body    = {};  
+    body.result = 'build scheduled'
+    body.build  = _.merge({
+      project: info.project.name,
+      branch: info.branch,
+      id: id
+    }, options);
+    
+    res.status(202).send(body);
+    return;
+  }
+  
+  res.status(400).send({error: 'unable to get build infos from this hook'});
 };
 
 /**
@@ -154,12 +184,14 @@ function notFoundMiddleware(req, res, next){
  */
 routes.bind = function(app) {
   app.param('project', projectNameMiddleware);
+  app.use(bodyParser.json());
   
   app.get('/api/config', routes.config);
   app.get('/api/projects', routes.projects);
   app.get('/api/projects/:project', routes.project);
   app.get('/api/projects/:project/build', routes.build);
   app.post('/api/projects/:project/build', routes.build);
+  app.post('/hooks/github', routes.buildFromGithubHook);
   
   app.use(notFoundMiddleware);
   app.use(obfuscateMiddleware);

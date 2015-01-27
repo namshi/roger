@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/namshi/roger",
   "dependencies": {
+    "body-parser": "^1.10.2",
     "dockerode": "^2.0.6",
     "express": "^4.11.1",
     "js-yaml": "^3.2.5",
