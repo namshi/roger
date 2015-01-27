@@ -1,3 +1,4 @@
+var url   = require('url');
 var _     = require('lodash');
 var utils = {};
 
@@ -20,12 +21,35 @@ utils.obfuscate = function(object) {
       object[key] = utils.obfuscate(value);
     }
     
-    if (_.isString(value) && _.contains(stopWords, key)) {
-      object[key] = '*****'
+    if (_.isString(value)) {
+      object[key] = utils.obfuscateString(value);
+      
+      if (_.contains(stopWords, key)) {
+        object[key] = '*****'
+      }
     }
   })
   
   return object;  
 };
+
+/**
+ * Takes a string and remove all sensitive
+ * values from it.
+ * 
+ * For example, if the string is a URL, it
+ * will remove the auth, if present.
+ */
+utils.obfuscateString = function(string) {
+  var parts = url.parse(string);
+  
+  if (parts.host && parts.auth) {
+    parts.auth = null;
+    
+    return url.format(parts);
+  }
+  
+  return string;
+}
 
 module.exports = utils;

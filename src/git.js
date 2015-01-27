@@ -1,6 +1,7 @@
-var logger  = require("./logger");
 var Q       = require('q');
 var spawn   = require('child_process').spawn;
+var logger  = require("./logger");
+var utils   = require("./utils");
 var git     = {};
 
 /**
@@ -11,14 +12,12 @@ var git     = {};
  * @return promise
  */
 git.clone = function(repo, path, branch) {
-  logger.info('Cloning %s:%s in %s', repo, branch, path);
+  logger.info('Cloning %s:%s in %s', utils.obfuscateString(repo), branch, path);
   var deferred = Q.defer();
   var clone    = spawn('git', ['clone', '-b', branch, '--single-branch', repo, path]);
-  
-  console.log(['clone', repo, path].join(' '))
 
   clone.stdout.on('data', function (data) {
-    logger.info('git clone %s: %s', repo, data.toString());
+    logger.info('git clone %s: %s', utils.obfuscateString(repo), data.toString());
   });
   
   /**
@@ -28,7 +27,7 @@ git.clone = function(repo, path, branch) {
    * @see http://git.661346.n2.nabble.com/Bugreport-Git-responds-with-stderr-instead-of-stdout-td4959280.html
    */
   clone.stderr.on('data', function (err) {
-    logger.info('git clone %s: %s', repo, err.toString());
+    logger.info('git clone %s: %s', utils.obfuscateString(repo), err.toString());
   });
   
   clone.on('close', function (code) {

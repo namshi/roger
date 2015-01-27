@@ -83,6 +83,68 @@ docker run -ti -e ROGER_CONFIG_projects_private-repo_github-token=MY_SECRET_TOKE
 Avoid using underscores in config keys, we are trying
 to fix this in the [library we use to parse the configuration](https://github.com/namshi/reconfig/issues/15).
 
+## Build triggers
+
+Roger exposes a simple HTTP interface
+and provides integration with some SCM
+provider, ie. GitHub.
+
+### Github
+
+Simply add a new webhook to your repo at
+`https://github.com/YOU/YOUR_PROGECT/settings/hooks/new`
+and configure it as follows:
+
+![github webhook](https://raw.githubusercontent.com/namshi/roger/master/bin/images/webhook.png?token=AAUC5KUrL2asRgmAob6t_Lxp0XVB_LCmks5U0MHgwA%3D%3D)
+
+Roger will now that the hook refers to a
+particular project because it matches the
+repository name with the `from` parameter
+of your project:
+
+``` yaml
+# Your repo full name is hello/world
+
+projects:
+  hello-world:
+    branch:     master
+    from:       https://github.com/hello/world # we are matching this
+```
+
+Roger will build everytime you push to
+github or a new tag is created.
+
+## Hooks
+
+Roger has the concept of hooks, which are
+commands that you can run at certain steps
+of the build.
+
+### after-build
+
+After an image is built, you can run as many
+hooks as you want **in a container running
+that specific image**; this means that if you
+want to run the tests of your applications you
+will most likely configure the project as follows:
+
+```
+projects:
+  my_node_app:
+    branch:   master
+    from:     https://github.com/me/my-node-app
+    registry: hub.docker.io
+    after-build:
+      - npm test
+```
+
+That is it! Now, after an image is built, before
+tagging it and sending it to the registry, roger
+will run `npm test` in your container and, if the
+tests fail, will stop the build.
+
+Neat, ah?
+
 ## APIs
 
 ### List projects
@@ -179,68 +241,6 @@ at `/api/config`.
     }
 }
 ```
-
-## Build triggers
-
-Roger exposes a simple HTTP interface
-and provides integration with some SCM
-provider, ie. GitHub.
-
-### Github
-
-Simply add a new webhook to your repo at
-`https://github.com/YOU/YOUR_PROGECT/settings/hooks/new`
-and configure it as follows:
-
-![github webhook](https://raw.githubusercontent.com/namshi/roger/master/bin/images/webhook.png?token=AAUC5KUrL2asRgmAob6t_Lxp0XVB_LCmks5U0MHgwA%3D%3D)
-
-Roger will now that the hook refers to a
-particular project because it matches the
-repository name with the `from` parameter
-of your project:
-
-``` yaml
-# Your repo full name is hello/world
-
-projects:
-  hello-world:
-    branch:     master
-    from:       https://github.com/hello/world # we are matching this
-```
-
-Roger will build everytime you push to
-github or a new tag is created.
-
-## Hooks
-
-Roger has the concept of hooks, which are
-commands that you can run at certain steps
-of the build.
-
-### after-build
-
-After an image is built, you can run as many
-hooks as you want **in a container running
-that specific image**; this means that if you
-want to run the tests of your applications you
-will most likely configure the project as follows:
-
-```
-projects:
-  my_node_app:
-    branch:   master
-    from:     https://github.com/me/my-node-app
-    registry: hub.docker.io
-    after-build:
-      - npm test
-```
-
-That is it! Now, after an image is built, before
-tagging it and sending it to the registry, roger
-will run `npm test` in your container and, if the
-tests fail, will stop the build.
-
-Neat, ah?
 
 ## Contributing
 
@@ -358,7 +358,6 @@ a must.
   * `/api/test` an api that takes an example config file, runs builds and asserts their output
   * `/api/build/all` trigger builds for all projects
   * `/api/build/{id}/status` track the progress of a build (will log the build output to a file and will stream it through res.write(...))
-* obfuscate passwords / tokens in the logs
 * documentation
   * how to run / extend / pass config file
 * run a single build
