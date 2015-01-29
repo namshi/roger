@@ -234,7 +234,7 @@ routes.bind = function(app) {
   app.get('/api/projects/:project/build', routes.build);
   app.post('/api/projects/:project/build', routes.build);
   app.get('/api/builds/:build', routes.buildStatus);
-  app.post('/hooks/github', routes.buildFromGithubHook);
+  app.post('/public/hooks/github', routes.buildFromGithubHook);
   
   app.use(notFoundMiddleware);
   app.use(obfuscateMiddleware);
