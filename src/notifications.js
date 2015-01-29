@@ -5,8 +5,14 @@ var notifications = {};
 
 /**
  * Trigger notifications for a specific project.
+ * 
+ * @param project
+ * @param branch
+ * @param options {buildId, uuid, logger}
  */
 notifications.trigger = function(project, branch, options){
+  options.logger.info('[%s] Sending notifications for %s', options.buildId, options.uuid);
+  
   var comment = 'Build ' + options.uuid + ' was successful';
   
   if (options.result instanceof Error) {
@@ -25,12 +31,14 @@ notifications.trigger = function(project, branch, options){
   if (_.isArray(project.notifications) && _.contains(project.notifications, 'github') && project['github-token']) {
     options.logger.info('[%s] Notifying github of build %s', options.buildId, options.uuid)
     
-    var parts     = project.from.split('/');
-    var repo      = parts.pop();
-    var user      = parts.pop();
-    options.token = project['github-token'];
+    var parts       = project.from.split('/');
+    options.repo    = parts.pop();
+    options.user    = parts.pop();
+    options.token   = project['github-token'];
+    options.branch  = branch;
+    options.comment = comment;
     
-    github.commentOnPullRequestByBranch(user, repo, branch, comment, options);
+    github.commentOnPullRequestByBranch(options);
   }
 };
 

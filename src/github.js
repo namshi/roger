@@ -1,7 +1,62 @@
 var _           = require('lodash');
+var Q           = require('q');
 var api         = require("github");
 var config      = require('./config');
 var github      = {};
+
+/**
+ * Returns all open pull requests for a
+ * given repo.
+ * 
+ * @param options {user, repo}
+ */
+function getAllPullRequests(options) {
+  var deferred = Q.defer();
+  
+  options.client.pullRequests.getAll({
+    user: options.user,
+    repo: options.repo,
+    state: 'open'
+  }, function(err, pulls){
+    if (err) {
+      deferred.reject(err);
+      
+      return;
+    }
+    
+    deferred.resolve(pulls);
+  })
+  
+  return deferred.promise;
+};
+
+/**
+ * Comments on a PR.
+ * 
+ * @param options {pr, buildId, uuid, user, repo, comment, logger}
+ */
+function commentOnPullRequest(options) {
+  var deferred = Q.defer();
+  
+  options.client.issues.createComment({
+    user: options.user,
+    repo: options.repo,
+    number: options.pr.issue_url.split('/').pop(),
+    body: options.comment
+  }, function(err, data){
+    if (err) {
+      promise.reject(err);
+      
+      return;
+    } else {
+      options.logger.info('[%s] Sent notifications for %s', options.buildId, options.uuid);
+      
+      deferred.resolve();
+    }
+  });
+  
+  return deferred.promise;
+};
 
 /**
  * Comments on a pull request opened from
@@ -10,41 +65,30 @@ var github      = {};
  * If multiple PRs are open from the same
  * branch, multiple comments are posted.
  * 
- * @todo promisify
+ * @param options {branch, comment, buildId, uuid, token, comment, logger, token}
  */
-github.commentOnPullRequestByBranch = function(user, repo, branch, comment, options) {
+github.commentOnPullRequestByBranch = function(options) {
   var client = new api({version: '3.0.0'});
   
   client.authenticate({
     type: "oauth",
     token: options.token
-  });  
+  });
   
-  client.pullRequests.getAll({
-    user: user,
-    repo: repo,
-    state: 'open'
-  }, function(err, pulls){
-    if (err) {
-      options.logger.error(err);
-    } else {
-      _.each(pulls, function(pr){
-        if (pr.head.ref === branch) {
-          client.issues.createComment({
-            user: user,
-            repo: repo,
-            number: pr.issue_url.split('/').pop(),
-            body: comment
-          }, function(err, data){
-            if (err) {
-              options.logger.error(err);
-            } else {
-              options.logger.info('[%s] Sent notifications for %s', options.buildId, options.uuid);
-            }
-          });
-        }
-      })
-    }
+  options.client = client;
+  
+  getAllPullRequests(options).then(function(pulls){
+    _.each(pulls, function(pr){
+      if (pr.head.ref === options.branch) {
+        options.pr = pr;
+        
+        commentOnPullRequest(options).then(function(){
+          options.logger.info('[%s] Commented on PR %s', options.buildId, pr.html_url);
+        });
+      }
+    })
+  }).catch(function(err){
+    options.logger.error(err);
   });
 };
 
