@@ -24,7 +24,7 @@ _.each(config.projects, function(project, name) {
    * the git clone URL to include that token
    * in the URL.
    */
-  var githubToken = project['github-token'] || config.auth['github'];
+  var githubToken = project['github-token'] || (config.auth && config.auth['github']);
   
   if (githubToken) {
     var uri       = url.parse(project.from);

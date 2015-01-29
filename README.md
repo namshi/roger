@@ -23,10 +23,23 @@ Ready to hack?
 
 ## Installation
 
-Roger should be running as a docker container
-itself:
+Create a configuration file, `config.yml`:
+
+``` yaml
+projects:
+  redis:
+    branch:       master
+    from:         https://github.com/dockerfile/redis
+    registry:     127.0.0.1:5000
+```
+
+then you can clone and run roger:
 
 ```
+git clone git@github.com:namshi/roger.git
+
+cd roger
+
 docker build -t namshi/roger .
 
 docker run -ti -p 6600:6600 -v /path/to/your/config.yml:/config.yml -v /var/run/docker.sock:/tmp/docker.sock namshi/roger
@@ -37,7 +50,7 @@ something like:
 
 ```
 2015-01-27T17:52:50.827Z - info: using config: {...}}
-Roger running on port 5000
+Roger running on port 6600
 ```
 
 ## Configuration
@@ -161,7 +174,7 @@ my-project:
     github: YOUR_SECRET_TOKEN
 ```
 
-## Email (through Amazon SES)
+### Email (through Amazon SES)
 
 If you want to receive notifications
 via email, you can simply configure
@@ -521,6 +534,19 @@ a must.
 
 ## TODO
 
-* fix *@todo*
+* docs
+  * how to setup a minimal server
+* client
+  * homepage with simple layout
+  * list of projects
+  * project view
+  * build a project
+  * view builds of a project
+  * view build of a project
+  * wall (use query parameters to include / exclude projects)
+* build tracking
+  * save build result
+  * persist to SQLite
+  * mount sqlite
 * api
   * `/api/test` an api that takes an example config file, runs builds and asserts their output

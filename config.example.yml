@@ -1,0 +1,5 @@
+projects:
+  redis:
+    branch:       master
+    from:         https://github.com/dockerfile/redis
+    registry:     127.0.0.1:5000
