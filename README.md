@@ -46,7 +46,9 @@ Roger will read a `/config.yml` file that you
 need to mount in the container:
 
 ``` yaml
-auth:
+app: # generic settings
+  url: 'https://builds.yourcompany.com' # optional, just used for logging
+auth: # authentication on various providers
   dockerhub: # these credentials are only useful if you need to push to the dockerhub
     username: odino # your username on the dockerhub
     email:    alessandro.nadalin@gmail.com # your...well, you get it
@@ -102,7 +104,7 @@ provider, ie. GitHub.
 ### Github
 
 Simply add a new webhook to your repo at
-`https://github.com/YOU/YOUR_PROGECT/settings/hooks/new`
+`https://github.com/YOU/YOUR_PROJECT/settings/hooks/new`
 and configure it as follows:
 
 ![github webhook](https://raw.githubusercontent.com/namshi/roger/master/bin/images/webhook.png?token=AAUC5KUrL2asRgmAob6t_Lxp0XVB_LCmks5U0MHgwA%3D%3D)
@@ -124,6 +126,32 @@ projects:
 Roger will build everytime you push to
 github or a new tag is created.
 
+## Notifications
+
+Once your build finishes, you can notify
+*someone* about its result (ie. success / failure).
+
+## Pull requests on Github
+
+This notification lets you update the status of a PR
+by commenting on it.
+
+If you have a PR from the branch `my-patch`
+open and roger is building that branch, it
+will then update the PR accordingly.
+
+To configure this hook, make sure that the
+`github-token` field is present in the project:
+
+``` yaml
+my-project:
+  branch:       master
+  from:         https://github.com/me/awesome-project
+  github-token: YOUR_SECRET_TOKEN
+  notifications:
+    - github
+```
+
 ## Hooks
 
 Roger has the concept of hooks, which are
@@ -139,13 +167,12 @@ want to run the tests of your applications you
 will most likely configure the project as follows:
 
 ```
-projects:
-  my_node_app:
-    branch:   master
-    from:     https://github.com/me/my-node-app
-    registry: hub.docker.io
-    after-build:
-      - npm test
+my-node-app:
+  branch:   master
+  from:     https://github.com/me/my-node-app
+  registry: hub.docker.io
+  after-build:
+    - npm test
 ```
 
 That is it! Now, after an image is built, before
@@ -457,5 +484,6 @@ a must.
 
 ## TODO
 
+* fix *@todo*
 * api
   * `/api/test` an api that takes an example config file, runs builds and asserts their output

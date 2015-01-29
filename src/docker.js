@@ -1,15 +1,16 @@
-var _       = require('lodash');
-var moment  = require('moment');
-var p       = require('path');
-var Docker  = require('dockerode');
-var Q       = require('q');
-var git     = require('./git');
-var config  = require('./config');
-var logger  = require('./logger');
-var tar     = require('./tar');
-var hooks   = require('./hooks');
-var client  = new Docker({socketPath: '/tmp/docker.sock'});
-var docker  = {};
+var _               = require('lodash');
+var moment          = require('moment');
+var p               = require('path');
+var Docker          = require('dockerode');
+var Q               = require('q');
+var git             = require('./git');
+var config          = require('./config');
+var logger          = require('./logger');
+var notifications   = require('./notifications');
+var tar             = require('./tar');
+var hooks           = require('./hooks');
+var client          = new Docker({socketPath: '/tmp/docker.sock'});
+var docker          = {};
 
 /**
  * Returns a logger for a build,
@@ -72,8 +73,16 @@ docker.build = function(project, branch, uuid) {
       return docker.push(image, buildId, uuid, branch, project.registry, buildLogger);
     }).then(function(){
       buildLogger.info('[%s] Finished build %s in %s #SWAG', buildId, uuid, moment(now).fromNow(Boolean));
+      
+      return true;
     }).catch(function(err){
       buildLogger.error('[%s] BUILD %s FAILED! ("%s") #YOLO', buildId, uuid, err.message || err.error);
+      
+      return new Error(err.message || err.error);
+    }).then(function(result){
+      notifications.trigger(project, branch, {result: result, logger: buildLogger, uuid: uuid, buildId: buildId});
+    }).catch(function(err){
+      buildLogger.error('[%s] Error sending notifications for %s ("%s")', buildId, uuid, err.message || err.error);
     });
   });
   

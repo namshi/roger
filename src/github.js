@@ -1,6 +1,52 @@
-var _       = require('lodash');
-var config  = require('./config');
-var github  = {};
+var _           = require('lodash');
+var api         = require("github");
+var config      = require('./config');
+var github      = {};
+
+/**
+ * Comments on a pull request opened from
+ * the given branch.
+ * 
+ * If multiple PRs are open from the same
+ * branch, multiple comments are posted.
+ * 
+ * @todo promisify
+ */
+github.commentOnPullRequestByBranch = function(user, repo, branch, comment, options) {
+  var client = new api({version: '3.0.0'});
+  
+  client.authenticate({
+    type: "oauth",
+    token: options.token
+  });  
+  
+  client.pullRequests.getAll({
+    user: user,
+    repo: repo,
+    state: 'open'
+  }, function(err, pulls){
+    if (err) {
+      options.logger.error(err);
+    } else {
+      _.each(pulls, function(pr){
+        if (pr.head.ref === branch) {
+          client.issues.createComment({
+            user: user,
+            repo: repo,
+            number: pr.issue_url.split('/').pop(),
+            body: comment
+          }, function(err, data){
+            if (err) {
+              options.logger.error(err);
+            } else {
+              options.logger.info('[%s] Sent notifications for %s', options.buildId, options.uuid);
+            }
+          });
+        }
+      })
+    }
+  });
+};
 
 /**
  * Extract the project that is referred
