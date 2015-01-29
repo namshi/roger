@@ -166,10 +166,12 @@ my-project:
 
 ## Email (through Amazon SES)
 
-You can also receive emails through
-Amazon SES, and configure multiple
-recipients so that a few people on
-the team get the notifications:
+If you want to receive notifications
+via email, you can simply configure
+the `email-ses` handler that will
+send emails through [Amazon SES](http://aws.amazon.com/ses/).
+
+![ses notifications](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-ses.png?token=AAUC5L9Lk4x65t7ttfcE1htsbWOkfgnuks5U09A4wA%3D%3D)
 
 ```
 my-project:
