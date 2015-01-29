@@ -1,5 +1,4 @@
 var _             = require('lodash');
-var github        = require('./github');
 var config        = require('./config');
 var router        = require('./router');
 var notifications = {};
@@ -13,33 +12,21 @@ var notifications = {};
  */
 notifications.trigger = function(project, branch, options){
   options.logger.info('[%s] Sending notifications for %s', options.buildId, options.uuid);
-  
-  var comment = 'Build ' + options.uuid + ' was successful';
+  var comments = ['Build ' + options.uuid + ' was successful'];
   
   if (options.result instanceof Error) {
-    comment = 'Build ' + options.uuid + ' broken: ' + options.result.message;
+    comments = ['Build ' + options.uuid + ' broken: ' + options.result.message];
   }
   
-  comment += "\nYou can check the build output at " + router.generate('build', {build: options.uuid});
+  comments.push("You can check the build output at " + router.generate('build', {build: options.uuid}, true));
   
-  /**
-   * Ghetto, as we like it.
-   * 
-   * Later on we need to support multiple notification
-   * providers but for now this triconditional if (how fancy
-   * I am) will do it.
-   */
-  if (_.isArray(project.notifications) && _.contains(project.notifications, 'github') && project['github-token']) {
-    options.logger.info('[%s] Notifying github of build %s', options.buildId, options.uuid)
-    
-    var parts       = project.from.split('/');
-    options.repo    = parts.pop();
-    options.user    = parts.pop();
-    options.token   = project['github-token'];
-    options.branch  = branch;
-    options.comment = comment;
-    
-    github.commentOnPullRequestByBranch(options);
+  if (_.isObject(project.notifications)) {
+    options.branch    = branch;
+    options.comments  = comments;
+
+    _.each(project.notifications, function(notificationOptions, handler){
+      require('./notifications/' + handler)(project, _.clone(options), notificationOptions);
+    })
   }
 };
 

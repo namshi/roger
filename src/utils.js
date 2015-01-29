@@ -14,7 +14,7 @@ var utils = {};
  */
 utils.obfuscate = function(object) {
   object = _.clone(object);
-  var stopWords = ['password', 'github', 'github-token']
+  var stopWords = ['password', 'github', 'github-token', 'token', 'access-key', 'secret']
   
   _.each(object, function(value, key){
     if (typeof value === 'object') {

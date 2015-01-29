@@ -62,6 +62,16 @@ projects: # list of projects that are gonna be built within the app
     after-build: # hooks to execute after an image is built, before pushing it to the registry, ie. tests
       - ls -la
       - sleep 1
+    notifications: # configs to notify of build failures / successes
+      github: # will post a comment on an open PR
+        token: YOUR_GITHUB_TOKEN
+      email-ses: # sends an email through amazon SES
+        access-key: YOUR_ACCESS_KEY
+        secret: YOUR_SECRET_KEY
+        region: YOUR_SES_REGION
+        to: # a list of people who will be notified
+          - you@example.org
+        from: admin@example.org # sender email (needs to be verified on SES: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
   redis: # if you don't specify the registry, we'll assume you want to push to the dockerhub
     branch:       master
     from:         https://github.com/dockerfile/redis
@@ -153,6 +163,32 @@ my-project:
   notifications:
     - github
 ```
+
+## Email (through Amazon SES)
+
+You can also receive emails through
+Amazon SES, and configure multiple
+recipients so that a few people on
+the team get the notifications:
+
+```
+my-project:
+  branch:       master
+  from:         https://github.com/me/awesome-project
+  github-token: YOUR_SECRET_TOKEN
+  notifications:
+    email-ses:
+      access-key: 123456
+      secret:     1a2b3c4d5e6f
+      region:     eu-west-1
+      to: 
+        - you@example.org
+        - build-status@example.org
+      from: roger@example.org
+```
+
+The `from` address needs to be
+[verified on SES](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html).
 
 ## Hooks
 
