@@ -1,3 +1,5 @@
+app:
+  url: 'http://localhost:6600'
 routes:
   config:         '/api/config'
   projects:       '/api/projects'
