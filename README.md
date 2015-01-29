@@ -136,6 +136,8 @@ Once your build finishes, you can notify
 This notification lets you update the status of a PR
 by commenting on it.
 
+![comment on pull requests](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-github.png?token=AAUC5O20LTEbpPUwbL_Nwk4yQwUHR1HQks5U01WTwA%3D%3D)
+
 If you have a PR from the branch `my-patch`
 open and roger is building that branch, it
 will then update the PR accordingly.
