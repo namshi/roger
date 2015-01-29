@@ -49,8 +49,6 @@ function commentOnPullRequest(options) {
       
       return;
     } else {
-      options.logger.info('[%s] Sent notifications for %s', options.buildId, options.uuid);
-      
       deferred.resolve();
     }
   });

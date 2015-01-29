@@ -1,6 +1,7 @@
 var _             = require('lodash');
 var github        = require('./github');
 var config        = require('./config');
+var router        = require('./router');
 var notifications = {};
 
 /**
@@ -19,7 +20,7 @@ notifications.trigger = function(project, branch, options){
     comment = 'Build ' + options.uuid + ' broken: ' + options.result.message;
   }
   
-  comment += "\nYou can check the build output at " + config.get('app.url') + "/api/builds/" + options.uuid;
+  comment += "\nYou can check the build output at " + router.generate('build', {build: options.uuid});
   
   /**
    * Ghetto, as we like it.

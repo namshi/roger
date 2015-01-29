@@ -1,0 +1,8 @@
+routes:
+  config:         '/api/config'
+  projects:       '/api/projects'
+  build-all:      '/api/build-all'
+  project:        '/api/projects/:project'
+  build-project:  '/api/projects/:project/build'
+  build:          '/api/builds/:build'
+  github-hooks:   '/public/hooks/github'

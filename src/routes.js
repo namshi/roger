@@ -8,6 +8,7 @@ var logger      = require('./logger');
 var docker      = require('./docker');
 var utils       = require('./utils');
 var github      = require('./github');
+var router      = require('./router');
 var routes      = {}
 
 /**
@@ -227,14 +228,14 @@ routes.bind = function(app) {
   app.param('project', projectNameMiddleware);
   app.use(bodyParser.json());
   
-  app.get('/api/config', routes.config);
-  app.get('/api/projects', routes.projects);
-  app.post('/api/build-all', routes.buildAll);
-  app.get('/api/projects/:project', routes.project);
-  app.get('/api/projects/:project/build', routes.build);
-  app.post('/api/projects/:project/build', routes.build);
-  app.get('/api/builds/:build', routes.buildStatus);
-  app.post('/public/hooks/github', routes.buildFromGithubHook);
+  app.get(router.generate('config'), routes.config);
+  app.get(router.generate('projects'), routes.projects);
+  app.post(router.generate('build-all'), routes.buildAll);
+  app.get(router.generate('project'), routes.project);
+  app.get(router.generate('build-project'), routes.build);
+  app.post(router.generate('build-project'), routes.build);
+  app.get(router.generate('build'), routes.buildStatus);
+  app.post(router.generate('github-hooks'), routes.buildFromGithubHook);
   
   app.use(notFoundMiddleware);
   app.use(obfuscateMiddleware);
