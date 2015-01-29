@@ -171,7 +171,8 @@ my-project:
   from:         https://github.com/me/awesome-project
   github-token: YOUR_SECRET_TOKEN
   notifications:
-    github: YOUR_SECRET_TOKEN
+    github: 
+      token: YOUR_SECRET_TOKEN
 ```
 
 ### Email (through Amazon SES)
