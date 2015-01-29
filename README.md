@@ -152,16 +152,13 @@ If you have a PR from the branch `my-patch`
 open and roger is building that branch, it
 will then update the PR accordingly.
 
-To configure this hook, make sure that the
-`github-token` field is present in the project:
-
 ``` yaml
 my-project:
   branch:       master
   from:         https://github.com/me/awesome-project
   github-token: YOUR_SECRET_TOKEN
   notifications:
-    - github
+    github: YOUR_SECRET_TOKEN
 ```
 
 ## Email (through Amazon SES)
@@ -173,7 +170,7 @@ send emails through [Amazon SES](http://aws.amazon.com/ses/).
 
 ![ses notifications](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-ses.png?token=AAUC5L9Lk4x65t7ttfcE1htsbWOkfgnuks5U09A4wA%3D%3D)
 
-```
+``` yaml
 my-project:
   branch:       master
   from:         https://github.com/me/awesome-project
