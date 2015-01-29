@@ -131,7 +131,7 @@ github or a new tag is created.
 Once your build finishes, you can notify
 *someone* about its result (ie. success / failure).
 
-## Pull requests on Github
+### Pull requests on Github
 
 This notification lets you update the status of a PR
 by commenting on it.
