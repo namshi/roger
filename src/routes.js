@@ -130,18 +130,16 @@ routes.config = function(req, res, next) {
  * needed to schedule a build.
  */
 routes.buildFromGithubHook = function(req, res) {
-  var info = github.getBuildInfoFromHook(req);
-  
-  if (info) {
+  github.getBuildInfoFromHook(req).then(function(info){
     var body    = {};  
     body.result = 'build scheduled'
     body.build  = scheduleBuild(info.project, info.branch);
     
     res.status(202).send(body);
     return;
-  }
-  
-  res.status(400).send({error: 'unable to get build infos from this hook'});
+  }).catch(function(){
+    res.status(400).send({error: 'unable to get build infos from this hook'});
+  });
 };
 
 /**
@@ -195,11 +193,13 @@ function linksEmbedderMiddleare(req, res, next) {
     links.build   = '/api/projects/' + res.locals.requestedProject + '/build'
   }
   
-  res.body._links = {};
-  
-  _.each(links, function(link, type){
-    res.body._links[type] = {href: link};
-  })
+  if (res.body) {
+    res.body._links = {};
+    
+    _.each(links, function(link, type){
+      res.body._links[type] = {href: link};
+    })
+  }
   
   next();
 };

@@ -132,7 +132,7 @@ and configure it as follows:
 
 ![github webhook](https://raw.githubusercontent.com/namshi/roger/master/bin/images/webhook.png?token=AAUC5KUrL2asRgmAob6t_Lxp0XVB_LCmks5U0MHgwA%3D%3D)
 
-Roger will now that the hook refers to a
+Roger will know that the hook refers to a
 particular project because it matches the
 repository name with the `from` parameter
 of your project:
@@ -147,7 +147,8 @@ projects:
 ```
 
 Roger will build everytime you push to
-github or a new tag is created.
+github, a new tag is created or you
+comment on a PR with the text `build please!`.
 
 ## Notifications
 
