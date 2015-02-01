@@ -2,7 +2,7 @@ FROM dockerfile/nodejs
 
 MAINTAINER Alessandro Nadalin "alessandro.nadalin@gmail.com"
 
-RUN mkdir /projects
+RUN mkdir /tmp/roger-builds
 
 # dev deps
 RUN npm install -g nodemon clusterjs
