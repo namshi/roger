@@ -57,7 +57,7 @@ docker.build = function(project, branch, uuid) {
   }).then(function(){
     buildLogger.info('[%s] Created tarball for %s', buildId, uuid);
     
-    return docker.buildImage(project, tarPath, imageId, buildId, buildLogger); 
+    return docker.buildImage(project, tarPath, imageId + ':' + branch, buildId, buildLogger); 
   }).then(function(){
     buildLogger.info('[%s] %s built succesfully', buildId, uuid);
     buildLogger.info('[%s] Tagging %s', buildId, uuid);
