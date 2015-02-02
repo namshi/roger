@@ -42,7 +42,7 @@ cd roger
 
 docker build -t namshi/roger .
 
-docker run -ti -p 6600:6600 -v /path/to/your/config.yml:/config.yml -v /var/run/docker.sock:/tmp/docker.sock namshi/roger
+docker run -ti -p 6600:6600 -v $(pwd)/db:/db -v /path/to/your/config.yml:/config.yml -v /var/run/docker.sock:/tmp/docker.sock namshi/roger
 ```
 
 If roger starts correctly, you should see

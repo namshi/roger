@@ -190,7 +190,7 @@ docker.getAuth = function(buildId, registry, buildLogger) {
 docker.push = function(image, buildId, uuid, branch, registry, buildLogger) {
   var deferred  = Q.defer();
   
-  image.push({tag: branch}, function(err, data){
+  image.push({tag: branch, force: true}, function(err, data){
     var somethingWentWrong = false;
     
     if (err) {
