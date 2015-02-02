@@ -5,6 +5,7 @@ var Docker          = require('dockerode');
 var Q               = require('q');
 var git             = require('./git');
 var config          = require('./config');
+var storage         = require('./storage');
 var logger          = require('./logger');
 var notifications   = require('./notifications');
 var tar             = require('./tar');
@@ -41,6 +42,7 @@ docker.build = function(project, branch, uuid) {
   var tarPath     = '/tmp/roger-builds/' + uuid  + '.tar';
   var logFile     = '/tmp/roger-builds/' + uuid  + '.log';
   var buildLogger = getBuildLogger(logFile);
+  storage.saveBuild(uuid, buildId, project.name, branch, 'started');
   
   buildLogger.info('[%s] Scheduled a build of %s', buildId, uuid);
   
@@ -51,39 +53,41 @@ docker.build = function(project, branch, uuid) {
       dockerfilePath = p.join(path, project.dockerfilePath);
     }
     
-    tar.create(tarPath,  dockerfilePath + '/').then(function(){
-      buildLogger.info('[%s] Created tarball for %s', buildId, uuid);
-      
-      return docker.buildImage(project, tarPath, imageId, buildId, buildLogger); 
-    }).then(function(){
-      buildLogger.info('[%s] %s built succesfully', buildId, uuid);
-      buildLogger.info('[%s] Tagging %s', buildId, uuid);
-      
-      return docker.tag(imageId, buildId, branch, buildLogger);
-    }).then(function(image){
-      buildLogger.info('[%s] Running after-build hooks for %s', buildId, uuid);
-      
-      return hooks.run('after-build', buildId, project, client, buildLogger).then(function(){
-        return image;
-      });
-    }).then(function(image){
-      buildLogger.info('[%s] Ran after-build hooks for %s', buildId, uuid);
-      buildLogger.info('[%s] Pushing %s to %s', buildId, uuid, project.registry);
-      
-      return docker.push(image, buildId, uuid, branch, project.registry, buildLogger);
-    }).then(function(){
-      buildLogger.info('[%s] Finished build %s in %s #SWAG', buildId, uuid, moment(now).fromNow(Boolean));
-      
-      return true;
-    }).catch(function(err){
-      buildLogger.error('[%s] BUILD %s FAILED! ("%s") #YOLO', buildId, uuid, err.message || err.error);
-      
-      return new Error(err.message || err.error);
-    }).then(function(result){
-      notifications.trigger(project, branch, {result: result, logger: buildLogger, uuid: uuid, buildId: buildId});
-    }).catch(function(err){
-      buildLogger.error('[%s] Error sending notifications for %s ("%s")', buildId, uuid, err.message || err.error);
+    return tar.create(tarPath,  dockerfilePath + '/');
+  }).then(function(){
+    buildLogger.info('[%s] Created tarball for %s', buildId, uuid);
+    
+    return docker.buildImage(project, tarPath, imageId, buildId, buildLogger); 
+  }).then(function(){
+    buildLogger.info('[%s] %s built succesfully', buildId, uuid);
+    buildLogger.info('[%s] Tagging %s', buildId, uuid);
+    
+    return docker.tag(imageId, buildId, branch, buildLogger);
+  }).then(function(image){
+    buildLogger.info('[%s] Running after-build hooks for %s', buildId, uuid);
+    
+    return hooks.run('after-build', buildId, project, client, buildLogger).then(function(){
+      return image;
     });
+  }).then(function(image){
+    buildLogger.info('[%s] Ran after-build hooks for %s', buildId, uuid);
+    buildLogger.info('[%s] Pushing %s to %s', buildId, uuid, project.registry);
+    
+    return docker.push(image, buildId, uuid, branch, project.registry, buildLogger);
+  }).then(function(){
+    storage.saveBuild(uuid, buildId, project.name, branch, 'passed');
+    buildLogger.info('[%s] Finished build %s in %s #SWAG', buildId, uuid, moment(now).fromNow(Boolean));
+    
+    return true;
+  }).catch(function(err){
+    storage.saveBuild(uuid, buildId, project.name, branch, 'failed');
+    buildLogger.error('[%s] BUILD %s FAILED! ("%s") #YOLO', buildId, uuid, err.message || err.error);
+    
+    return new Error(err.message || err.error);
+  }).then(function(result){
+    notifications.trigger(project, branch, {result: result, logger: buildLogger, uuid: uuid, buildId: buildId});
+  }).catch(function(err){
+    buildLogger.error('[%s] Error sending notifications for %s ("%s")', buildId, uuid, err.message || err.error);
   });
   
   return {path: path, tar: tarPath, tag: buildId, log: logFile}

@@ -4,6 +4,7 @@ var fs          = require('fs');
 var uuid        = require('node-uuid');
 var growingFile = require('growing-file');
 var config      = require('./config');
+var storage     = require('./storage');
 var logger      = require('./logger');
 var docker      = require('./docker');
 var utils       = require('./utils');
@@ -143,6 +144,38 @@ routes.buildFromGithubHook = function(req, res) {
 };
 
 /**
+ * Returns all builds of a particular
+ * project.
+ */
+routes.buildsByProject = function(req, res, next) {
+  res.body = {
+    builds: storage.getBuildsByProject(req.params.project)
+  };
+  
+  res.status(200);
+  next();
+};
+
+/**
+ * Returns a specific build.
+ */
+routes.buildByProject = function(req, res, next) {
+  var build = storage.getBuildByProject(req.params.id, req.params.project);
+
+  if (build) {
+    res.body = {
+      build: build
+    };
+    
+    res.status(200);
+  } else {
+    res.status(404);
+  }
+  
+  next();
+};
+
+/**
  * Middleware that lets you specify
  * branches via colon in the URL
  * ie. redis:master.
@@ -235,6 +268,8 @@ routes.bind = function(app) {
   app.get(router.generate('build-project'), routes.build);
   app.post(router.generate('build-project'), routes.build);
   app.get(router.generate('build'), routes.buildStatus);
+  app.get(router.generate('buildsByProject'), routes.buildsByProject);
+  app.get(router.generate('buildByProject'), routes.buildByProject);
   app.post(router.generate('github-hooks'), routes.buildFromGithubHook);
   
   app.use(notFoundMiddleware);
