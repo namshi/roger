@@ -139,17 +139,8 @@ docker.tag = function(imageId, buildId, branch, buildLogger) {
   var deferred  = Q.defer();
   var image     = client.getImage(imageId);
   
-  image.inspect(function(err, info){
-    if (err) {
-      deferred.reject(err);
-    } else {
-      buildLogger.info('Docker confirmed the build of %s, author %s, created on %s on docker %s', buildId, info.Author, info.Created, info.DockerVersion)
-      buildLogger.info('Tagging %s', buildId);
-      
-      image.tag({repo: imageId, tag: branch}, function(){
-        deferred.resolve(image);
-      })
-    }
+  image.tag({repo: imageId, tag: branch}, function(){
+    deferred.resolve(image);
   })
   
   return deferred.promise;
