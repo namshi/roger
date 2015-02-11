@@ -33,7 +33,12 @@ function getBuildLogger(logFile) {
  * @return promise
  */
 docker.build = function(project, branch, uuid) {
-  var branch      = branch || 'master';
+  var gitBranch   = branch || project.branch;
+  
+  if (branch === project.branch) {
+    branch = 'latest';
+  }
+  
   var now         = moment();
   var timestamp   = Date.now() / 1000 | 0;
   var path        = '/tmp/roger-builds/sources/' + uuid;
@@ -46,7 +51,7 @@ docker.build = function(project, branch, uuid) {
   
   buildLogger.info('[%s] Scheduled a build of %s', buildId, uuid);
   
-  git.clone(project.from, path, branch, buildLogger).then(function(){
+  git.clone(project.from, path, gitBranch, buildLogger).then(function(){
     var dockerfilePath = path;
     
     if (project.dockerfilePath) {
