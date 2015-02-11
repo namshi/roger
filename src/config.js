@@ -16,7 +16,8 @@ _.assign(config, userConfig);
  * to each project's configuration.
  */
 _.each(config.projects, function(project, name) {
-  config.projects[name].name = name;
+  project.name   = name;
+  project.branch = project.branch || 'master';
   
   /**
    * If there is a github token set for this
