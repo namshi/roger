@@ -20,11 +20,11 @@ notifications.trigger = function(project, branch, options){
   
   comments.push("You can check the build output at " + router.generate('build', {build: options.uuid}, true));
   
-  if (_.isObject(project.notifications)) {
-    options.branch    = branch;
-    options.comments  = comments;
-
+  if (_.isArray(project.notify)) {
     _.each(project.notify, function(handler){
+      options.branch    = branch;
+      options.comments  = _.clone(comments);
+      
       var notificationOptions = (project.notifications && project.notifications[handler]) || config.get('notifications.' + handler);
       
       require('./notifications/' + handler)(project, _.clone(options), notificationOptions);

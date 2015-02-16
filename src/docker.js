@@ -85,10 +85,12 @@ docker.build = function(project, branch, uuid) {
     
     return true;
   }).catch(function(err){
+    var message = err.message || err.error || err;
+
     storage.saveBuild(uuid, buildId, project.name, branch, 'failed');
-    buildLogger.error('[%s] BUILD %s FAILED! ("%s") #YOLO', buildId, uuid, err.message || err.error);
+    buildLogger.error('[%s] BUILD %s FAILED! ("%s") #YOLO', buildId, uuid, message);
     
-    return new Error(err.message || err.error);
+    return new Error(message);
   }).then(function(result){
     notifications.trigger(project, branch, {result: result, logger: buildLogger, uuid: uuid, buildId: buildId});
   }).catch(function(err){
@@ -110,20 +112,22 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger) {
     if (err) {
       deferred.reject(err);
     } else {
-      buildLogger.info('Build of %s is in progress...', buildId);
+      buildLogger.info('[%s] Build is in progress...', buildId);
       
       response.on('data', function(out){
         var result = JSON.parse(out.toString('utf-8'));
+        
+        if (result.error) {
+          buildLogger.error('[%s] %s', buildId, result.error)
+          deferred.reject(result.error);
+          return;
+        }
         
         if (result.progress) {
           result.status = result.status + ' ' + result.progress;
         }
         
         buildLogger.info("[%s] %s", buildId, result.stream || result.status);
-      });
-      
-      response.on('error', function(err){
-        deferred.reject(err);
       });
       
       response.on('end', function(){
