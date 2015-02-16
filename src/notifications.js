@@ -24,7 +24,9 @@ notifications.trigger = function(project, branch, options){
     options.branch    = branch;
     options.comments  = comments;
 
-    _.each(project.notifications, function(notificationOptions, handler){
+    _.each(project.notify, function(handler){
+      var notificationOptions = (project.notifications && project.notifications[handler]) || config.get('notifications.' + handler);
+      
       require('./notifications/' + handler)(project, _.clone(options), notificationOptions);
     })
   }

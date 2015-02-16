@@ -28,9 +28,10 @@ _.each(config.projects, function(project, name) {
   var githubToken = project['github-token'] || (config.auth && config.auth['github']);
   
   if (githubToken) {
-    var uri       = url.parse(project.from);
-    uri.auth      = githubToken;
-    project.from  = uri.format();
+    var uri                 = url.parse(project.from);
+    uri.auth                = githubToken;
+    project.from            = uri.format();
+    project['github-token'] = githubToken;
   }
   
   /**

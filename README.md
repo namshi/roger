@@ -67,6 +67,15 @@ auth: # authentication on various providers
     email:    alessandro.nadalin@gmail.com # your...well, you get it
     password: YOUR_DOCKERHUB_PASSWORD --> see https://github.com/namshi/roger#sensitive-data
   github: YOUR_SECRET_TOKEN # General token to be used to authenticate to clone any project (https://github.com/settings/tokens/new)
+notifications: # configs to notify of build failures / successes
+  github: '{{ auth.github }}' # config values can reference other values, this will post a comment on an open PR
+  email-ses: # sends an email through amazon SES
+    access-key: 1234
+    secret: 5678
+    region: eu-west-1
+    to: 
+      - john.doe@gmail.com # a list of people who will be notified
+    from: builds@company.com # sender email (needs to be verified on SES: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
 projects: # list of projects that are gonna be built within the app
   nginx-pagespeed: # name of the project, will be the name of the image as well
     branch:     master # default branch to build from, optional
@@ -75,16 +84,9 @@ projects: # list of projects that are gonna be built within the app
     after-build: # hooks to execute after an image is built, before pushing it to the registry, ie. tests
       - ls -la
       - sleep 1
-    notifications: # configs to notify of build failures / successes
-      github: # will post a comment on an open PR
-        token: YOUR_GITHUB_TOKEN
-      email-ses: # sends an email through amazon SES
-        access-key: YOUR_ACCESS_KEY
-        secret: YOUR_SECRET_KEY
-        region: YOUR_SES_REGION
-        to: # a list of people who will be notified
-          - you@example.org
-        from: admin@example.org # sender email (needs to be verified on SES: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
+    notify:
+      - github
+      - email-ses
   redis: # if you don't specify the registry, we'll assume you want to push to the dockerhub
     branch:       master
     from:         https://github.com/dockerfile/redis
@@ -167,14 +169,30 @@ open and roger is building that branch, it
 will then update the PR accordingly.
 
 ``` yaml
+notifications:
+  github: MY_SECRET_TOKEN
 my-project:
   branch:       master
   from:         https://github.com/me/awesome-project
-  github-token: YOUR_SECRET_TOKEN
-  notifications:
-    github: 
-      token: YOUR_SECRET_TOKEN
+  notify:
+    - github
 ```
+
+You can also use a per-project github token with:
+
+```
+my-project:
+  branch:       master
+  from:         https://github.com/me/awesome-project
+  notifications:
+    github: YOUR_SECRET_TOKEN
+  notify:
+    - github
+```
+
+else roger will use the general token set in the
+`auth` section of the config file, so you don't
+have to specify the token for each project.
 
 ### Email (through Amazon SES)
 
@@ -186,23 +204,43 @@ send emails through [Amazon SES](http://aws.amazon.com/ses/).
 ![ses notifications](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-ses.png?token=AAUC5L9Lk4x65t7ttfcE1htsbWOkfgnuks5U09A4wA%3D%3D)
 
 ``` yaml
+notifications:
+  email-ses:
+    access-key: 123456
+    secret:     1a2b3c4d5e6f
+    region:     eu-west-1
+    to: 
+      - you@example.org
+      - build-status@example.org
+    from: roger@example.org
 my-project:
   branch:       master
   from:         https://github.com/me/awesome-project
-  github-token: YOUR_SECRET_TOKEN
+  notify:
+    - email-ses
+```
+
+The `from` address needs to be
+[verified on SES](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html).
+
+Just like any other notiication, you can override the configuration
+for SES on a project basic:
+
+```
+my-project:
+  branch:       master
+  from:         https://github.com/me/awesome-project
+  notify:
+    - email-ses
   notifications:
     email-ses:
       access-key: 123456
       secret:     1a2b3c4d5e6f
       region:     eu-west-1
       to: 
-        - you@example.org
-        - build-status@example.org
+        - dude-who-has-been-working-on-this-specific-project@example.org
       from: roger@example.org
 ```
-
-The `from` address needs to be
-[verified on SES](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html).
 
 ## Hooks
 
