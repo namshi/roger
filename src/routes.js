@@ -134,7 +134,11 @@ routes.buildFromGithubHook = function(req, res) {
   github.getBuildInfoFromHook(req).then(function(info){
     var body    = {};  
     body.result = 'build scheduled'
-    body.build  = scheduleBuild(info.project, info.branch);
+    body.builds  = [];
+    
+    _.each(info.projects, function(project){
+      body.builds.push(scheduleBuild(project, info.branch));
+    });
     
     res.status(202).send(body);
     return;
