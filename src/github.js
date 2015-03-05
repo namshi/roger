@@ -124,41 +124,45 @@ github.commentOnPullRequestByBranch = function(options) {
 };
 
 /**
- * Extract the project that is referred
+ * Extract the projects referred
  * by this hook.
  * 
  * The project will be matched with the
  * repository URL in its configuration
  * (ie from: github/me/project)
  */
-github.getProjectFromHook = function(payload) {
-  var project;
+github.getProjectsFromHook = function(payload) {
+  var projects = [];
   
-  _.each(config.get('projects'), function(p){
-    if (payload.repository && payload.repository.full_name && p.from.match(payload.repository.full_name)) {
-      project = p;
+  _.each(config.get('projects'), function(project){
+    if (payload.repository && payload.repository.full_name && project.from.match(payload.repository.full_name)) {
+      projects.push(project);
     }
   });
   
-  return project;
+  return projects;
 }
 
 /**
  * Retrieves build information from
  * a github hook.
  * 
- * All you need to know is which project
+ * All you need to know is which projects
  * this hook refers to and the branch / tag
  * we need to build.
+ * 
+ * A hook can refer to multiple projects
+ * as people might store multiple dockerfiles
+ * in the same github repo.
  */
 github.getBuildInfoFromHook = function(req) {
   var deferred = Q.defer();
   var payload  = req.body;
-  var project  = github.getProjectFromHook(payload);
+  var projects = github.getProjectsFromHook(payload);
   var info     = {};
   
-  if (project) {
-    info.project  = project;
+  if (projects.length > 0) {
+    info.projects  = projects;
     
     if (req.headers['x-github-event'] === 'push') {
       info.branch  = payload.ref.replace('refs/heads/', '');
@@ -166,12 +170,12 @@ github.getBuildInfoFromHook = function(req) {
     } else if (req.headers['x-github-event'] === 'create' && payload.ref_type === 'tag') {
       info.branch = payload.ref;
       deferred.resolve(info);
-    } else if (req.headers['x-github-event'] === 'issue_comment' && project['github-token'] && payload.issue.pull_request && payload.comment.body === 'build please!') {
+    } else if (req.headers['x-github-event'] === 'issue_comment' && projects[0]['github-token'] && payload.issue.pull_request && payload.comment.body === 'build please!') {
       var user  = payload.repository.owner.login;
       var repo  = payload.repository.name;
       var nr    = payload.issue.pull_request.url.split('/').pop();
       
-      getPullRequest(project['github-token'], user, repo, nr).then(function(pr){
+      getPullRequest(projects[0]['github-token'], user, repo, nr).then(function(pr){
         info.branch = pr.head.ref;
         deferred.resolve(info);
       }).catch(function(err){
