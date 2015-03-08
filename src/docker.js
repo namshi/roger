@@ -92,7 +92,7 @@ docker.build = function(project, branch, uuid) {
     
     return new Error(message);
   }).then(function(result){
-    notifications.trigger(project, branch, {result: result, logger: buildLogger, uuid: uuid, buildId: buildId});
+    notifications.trigger(project, branch, {project: project, result: result, logger: buildLogger, uuid: uuid, buildId: buildId});
   }).catch(function(err){
     buildLogger.error('[%s] Error sending notifications for %s ("%s")', buildId, uuid, err.message || err.error);
   });
