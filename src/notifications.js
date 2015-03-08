@@ -12,10 +12,10 @@ var notifications = {};
  */
 notifications.trigger = function(project, branch, options){
   options.logger.info('[%s] Sending notifications for %s', options.buildId, options.uuid);
-  var comments = ['Build ' + options.uuid + ' was successful'];
+  var comments = ['[' + options.project.name + '] Build ' + options.uuid + ' was successful'];
   
   if (options.result instanceof Error) {
-    comments = ['Build ' + options.uuid + ' broken: ' + options.result.message];
+    comments = ['[' + options.project.name + '] Build ' + options.uuid + ' broken: ' + options.result.message];
   }
   
   comments.push("You can check the build output at " + router.generate('build', {build: options.uuid}, true));
