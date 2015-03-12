@@ -63,6 +63,11 @@ routes.build = function(req, res, next) {
     body.result = 'build scheduled';
     body.build  = scheduleBuild(project, req.params.branch || project.branch);
     status      = 202;
+    
+    if (req.query.r) {
+      status = 302;
+      res.setHeader('Location', body.build.status)
+    }
   }
   
   res.status(status).body = body;
@@ -99,7 +104,7 @@ routes.buildStatus = function(req, res, next) {
   if (fs.existsSync(logFile)) {
     res.writeHead(200, {'Content-Type': 'text/plain'});
   
-    growingFile.open(logFile).pipe(res);
+    growingFile.open(logFile, {timeout: 60000, interval: 1000}).pipe(res);
     return;
   }
   
