@@ -10,6 +10,7 @@ var logger          = require('./logger');
 var notifications   = require('./notifications');
 var tar             = require('./tar');
 var hooks           = require('./hooks');
+var publisher       = require('./publisher');
 var client          = new Docker({socketPath: '/tmp/docker.sock'});
 var docker          = {};
 
@@ -68,6 +69,10 @@ docker.build = function(project, branch, uuid) {
     buildLogger.info('[%s] Tagging %s', buildId, uuid);
     
     return docker.tag(imageId, buildId, branch, buildLogger);
+  }).then(function(image){
+    return publisher.publish(client, buildId, project, logger).then(function(){
+      return image;
+    });
   }).then(function(image){
     buildLogger.info('[%s] Running after-build hooks for %s', buildId, uuid);
     
@@ -219,8 +224,26 @@ docker.push = function(image, buildId, uuid, branch, registry, buildLogger) {
       })
     }
   }, docker.getAuth(buildId, registry, buildLogger));
-  
   return deferred.promise;
 };
+
+/**
+ * Copies stuff from the container to
+ * the host machine.
+ */
+docker.copy = function(container, containerPath, hostPath) {
+  return Q.Promise(function(resolve, reject){
+    container.copy({Resource: containerPath}, function(err, data){
+      if (err) {
+        reject(err);
+        return;
+      }
+      
+      return tar.createFromStream(hostPath, data).then(function(){
+        resolve();
+      });
+    })
+  });
+}
 
 module.exports = docker;

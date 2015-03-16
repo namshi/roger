@@ -20,3 +20,12 @@ projects: # list of projects that are gonna be built within the app
     from:         https://github.com/odino/holland
     github-token: YOUR_SECRET_TOKEN # project-specific github oauth token (https://github.com/settings/tokens/new)
     registry:     127.0.0.1:5000
+    publish:
+      - 
+        to: s3
+        copy: /src/build/public/ # this is the path inside the container
+        bucket: my-bucket # name of the s3 bucket
+        bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
+        command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)
+        key: AWS_S3_KEY # guess what
+        secret: AWS_S3_SECRET # guess what again
