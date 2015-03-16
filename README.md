@@ -96,6 +96,15 @@ projects: # list of projects that are gonna be built within the app
     dockerfilePath: some/subdir # location of the dockerfile, omit this if it's in the root of the repo
     github-token:   YOUR_SECRET_TOKEN # project-specific github oauth token (https://github.com/settings/tokens/new)
     registry:       127.0.0.1:5001
+    publish:
+      - 
+        to: s3
+        copy: /src/build/public/ # this is the path inside the container
+        bucket: my-bucket # name of the s3 bucket
+        bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
+        command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)
+        key: AWS_S3_KEY # guess what
+        secret: AWS_S3_SECRET # guess what again
 ```
 
 ### Sensitive data
@@ -151,6 +160,36 @@ projects:
 Roger will build everytime you push to
 github, a new tag is created or you
 comment on a PR with the text `build please!`.
+
+## Publishing artifacts
+
+Roger provides some ways to upload your build to
+some supported providers.
+
+### S3
+
+You can upload stuff from your container to an S3
+bucket by simply specifying the following in your
+project configuration:
+
+``` yaml
+projects:
+  myproject:
+    publish:
+      - 
+        to: s3
+        copy: /src/build/public/ # this is the path inside the container
+        bucket: my-bucket # name of the s3 bucket
+        bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
+        command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)
+        key: AWS_S3_KEY # guess what
+        secret: AWS_S3_SECRET # guess what again
+```
+
+What happens is that we're gonna run a container
+with the image we just built, then copy a directory
+outside of the container (yes, to the host machine)
+and then upload that to S3.
 
 ## Notifications
 
