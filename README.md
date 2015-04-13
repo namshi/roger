@@ -96,6 +96,7 @@ projects: # list of projects that are gonna be built within the app
     dockerfilePath: some/subdir # location of the dockerfile, omit this if it's in the root of the repo
     github-token:   YOUR_SECRET_TOKEN # project-specific github oauth token (https://github.com/settings/tokens/new)
     registry:       127.0.0.1:5001
+    revfile:      somedir # means roger will create a rev.txt file with informations about the build at this path
     publish:
       - 
         to: s3
