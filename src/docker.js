@@ -3,6 +3,7 @@ var moment          = require('moment');
 var p               = require('path');
 var Docker          = require('dockerode');
 var Q               = require('q');
+var fs              = require('fs');
 var git             = require('./git');
 var config          = require('./config');
 var storage         = require('./storage');
@@ -53,6 +54,10 @@ docker.build = function(project, branch, uuid) {
   buildLogger.info('[%s] Scheduled a build of %s', buildId, uuid);
   
   git.clone(project.from, path, gitBranch, buildLogger).then(function(){
+    return git.getLastCommit(path, gitBranch)
+  }).then(function(commit){
+    return docker.addRevFile(gitBranch, path, commit, project, buildLogger, {buildId: buildId});
+  }).then(function(){
     var dockerfilePath = path;
     
     if (project.dockerfilePath) {
@@ -104,6 +109,36 @@ docker.build = function(project, branch, uuid) {
   
   return {path: path, tar: tarPath, tag: buildId, log: logFile}
 };
+
+/**
+ * Adds a revfile at the build path
+ * with information about the latest
+ * commit.
+ */
+docker.addRevFile = function(gitBranch, path, commit, project, buildLogger, options){
+  var parts = [path];
+
+  if (project.dockerfilePath) {
+    parts.push(project.dockerfilePath);
+  }
+  
+  if (project.revfile) {
+    parts.push(project.revfile);
+  }
+  
+  var revFilePath = p.join(parts.join('/'), 'rev.txt');
+  
+  buildLogger.info('[%s] Going to create revfile in %s', options.buildId, revFilePath);
+  fs.appendFileSync(revFilePath, "Version: " + gitBranch);
+  fs.appendFileSync(revFilePath, "\nDate: " + commit.date());
+  fs.appendFileSync(revFilePath, "\nAuthor: " + commit.author());
+  fs.appendFileSync(revFilePath, "\nSha: " + commit.sha());
+  fs.appendFileSync(revFilePath, "\n");
+  fs.appendFileSync(revFilePath, "\nCommit message:");
+  fs.appendFileSync(revFilePath, "\n");
+  fs.appendFileSync(revFilePath, "\n  " + commit.message());
+  buildLogger.info('[%s] Created revfile in %s', options.buildId, revFilePath);
+}
 
 /**
  * Builds a docker image.

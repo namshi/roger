@@ -27,8 +27,8 @@
   },
   "homepage": "https://github.com/namshi/roger",
   "dependencies": {
-    "body-parser": "^1.10.2",
     "aws-sdk": "^2.1.8",
+    "body-parser": "^1.10.2",
     "dockerode": "^2.0.6",
     "express": "^4.11.1",
     "github": "^0.2.3",
@@ -38,6 +38,7 @@
     "moment": "^2.9.0",
     "node-dir": "^0.1.6",
     "node-uuid": "^1.4.2",
+    "nodegit": "^0.3.3",
     "q": "^1.1.2",
     "reconfig": "^1.5.1",
     "s3": "^4.4.0",
