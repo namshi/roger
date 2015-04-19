@@ -49,13 +49,16 @@ docker.build = function(project, branch, uuid) {
   var tarPath     = '/tmp/roger-builds/' + uuid  + '.tar';
   var logFile     = '/tmp/roger-builds/' + uuid  + '.log';
   var buildLogger = getBuildLogger(logFile);
-  storage.saveBuild(uuid, buildId, project.name, branch, 'started');
+  var author;
   
+  storage.saveBuild(uuid, buildId, project.name, branch, 'started');
   buildLogger.info('[%s] Scheduled a build of %s', buildId, uuid);
   
   git.clone(project.from, path, gitBranch, buildLogger).then(function(){
     return git.getLastCommit(path, gitBranch)
   }).then(function(commit){
+    author = commit.author().email();
+    
     return docker.addRevFile(gitBranch, path, commit, project, buildLogger, {buildId: buildId});
   }).then(function(){
     var dockerfilePath = path;
@@ -102,7 +105,7 @@ docker.build = function(project, branch, uuid) {
     
     return new Error(message);
   }).then(function(result){
-    notifications.trigger(project, branch, {project: project, result: result, logger: buildLogger, uuid: uuid, buildId: buildId});
+    notifications.trigger(project, branch, {author: author, project: project, result: result, logger: buildLogger, uuid: uuid, buildId: buildId});
   }).catch(function(err){
     buildLogger.error('[%s] Error sending notifications for %s ("%s")', buildId, uuid, err.message || err.error);
   });

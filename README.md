@@ -75,6 +75,7 @@ notifications: # configs to notify of build failures / successes
     region: eu-west-1
     to: 
       - john.doe@gmail.com # a list of people who will be notified
+      - committer # this is a special value that references the email of the commit author
     from: builds@company.com # sender email (needs to be verified on SES: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
 projects: # list of projects that are gonna be built within the app
   nginx-pagespeed: # name of the project, will be the name of the image as well
