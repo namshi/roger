@@ -22,6 +22,7 @@ notifications.trigger = function(project, branch, options){
   
   if (_.isArray(project.notify)) {
     _.each(project.notify, function(handler){
+      options.author    = options.author;
       options.branch    = branch;
       options.comments  = _.clone(comments);
       

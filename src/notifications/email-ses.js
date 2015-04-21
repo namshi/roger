@@ -1,4 +1,5 @@
 var aws = require('aws-sdk');
+var _ = require('lodash');
 
 /**
  * Triggers an email notification
@@ -8,12 +9,20 @@ module.exports = function(project, options, notificationOptions) {
   aws.config.accessKeyId      = notificationOptions['access-key'];
   aws.config.secretAccessKey  = notificationOptions.secret;
   aws.config.region           = notificationOptions.region;
+  var ses                     = new aws.SES({apiVersion: '2010-12-01'});
+  var recipients              = [];
   
-  var ses   = new aws.SES({apiVersion: '2010-12-01'});
+  _.each(notificationOptions.to, function(recipient){
+    if (recipient == 'committer' && options.author) {
+      recipients.push(options.author)
+    } else {
+      recipients.push(recipient)
+    }
+  })
 
   ses.sendEmail( { 
     Source: notificationOptions.from, 
-    Destination: { ToAddresses: notificationOptions.to },
+    Destination: { ToAddresses: recipients },
     Message: {
       Subject: {
         Data: options.comments.shift()
