@@ -29,12 +29,16 @@ function getBuildLogger(logFile) {
   return buildLogger;
 }
 
+docker.build = function(repo, branch) {
+  // ...
+};
+
 /**
  * Builds the specified branch of a project.
  * 
  * @return promise
  */
-docker.build = function(project, branch, uuid) {
+docker.oldBuild = function(project, branch, uuid) {
   var gitBranch   = branch || project.branch;
   
   if (branch === project.branch) {

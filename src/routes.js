@@ -22,7 +22,7 @@ var routes      = {}
  */
 function scheduleBuild(project, branch) {
   var id   = uuid.v4();
-  var info = docker.build(project, branch, id);
+  var info = docker.oldBuild(project, branch, id);
   
   return _.merge({
     project: project.name,
@@ -43,6 +43,14 @@ routes.buildAll = function(req, res, next) {
   });
   
   res.status(202).body = body;
+  next();
+}
+
+/**
+ * Builds all configured projects.
+ */
+routes.build2 = function(req, res, next) {
+  res.status(202).body = docker.build(req.query.url, req.query.branch || "master");
   next();
 }
 
@@ -277,6 +285,8 @@ routes.bind = function(app) {
   app.get(router.generate('build-project'), routes.build);
   app.post(router.generate('build-project'), routes.build);
   app.get(router.generate('build'), routes.buildStatus);
+  app.get(router.generate('build-v2'), routes.build2);
+  app.post(router.generate('build-v2'), routes.build2);
   app.get(router.generate('buildsByProject'), routes.buildsByProject);
   app.get(router.generate('buildByProject'), routes.buildByProject);
   app.post(router.generate('github-hooks'), routes.buildFromGithubHook);

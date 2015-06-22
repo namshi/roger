@@ -1,6 +1,7 @@
 app:
   url: 'http://localhost:6600'
 routes:
+  build-v2:         '/api/v2/build'
   config:           '/api/config'
   projects:         '/api/projects'
   build-all:        '/api/build-all'
