@@ -147,6 +147,18 @@ routes.config = function(req, res, next) {
  */
 routes.buildFromGithubHook = function(req, res) {
   github.getBuildInfoFromHook(req).then(function(info){
+    docker.schedule(info.repo, info.branch || "master", uuid.v4())
+    
+    res.status(202).send({message: "builds triggered", info: info});
+    return;
+  }).catch(function(err){
+    res.status(400).send({error: 'unable to get build infos from this hook'});
+    logger.error(err)
+  });
+};
+
+routes.oldBuildFromGithubHook = function(req, res) {
+  github.getOldBuildInfoFromHook(req).then(function(info){
     var body    = {};  
     body.result = 'build scheduled'
     body.builds  = [];
@@ -291,7 +303,8 @@ routes.bind = function(app) {
   app.post(router.generate('build-v2'), routes.build2);
   app.get(router.generate('buildsByProject'), routes.buildsByProject);
   app.get(router.generate('buildByProject'), routes.buildByProject);
-  app.post(router.generate('github-hooks'), routes.buildFromGithubHook);
+  app.post(router.generate('github-hooks-v2'), routes.buildFromGithubHook);
+  app.post(router.generate('github-hooks'), routes.oldBuildFromGithubHook);
   
   app.use(notFoundMiddleware);
   app.use(obfuscateMiddleware);
