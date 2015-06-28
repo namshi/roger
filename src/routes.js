@@ -50,7 +50,9 @@ routes.buildAll = function(req, res, next) {
  * Builds all configured projects.
  */
 routes.build2 = function(req, res, next) {
-  res.status(202).body = docker.build(req.query.url, req.query.branch || "master");
+  docker.schedule(req.query.url, req.query.branch || "master", uuid.v4())
+  
+  res.status(202).body = {message: "build scheduled"};
   next();
 }
 

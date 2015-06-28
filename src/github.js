@@ -135,7 +135,7 @@ github.getProjectsFromHook = function(payload) {
   var projects = [];
   
   _.each(config.get('projects'), function(project){
-    if (payload.repository && payload.repository.full_name && project.from.match(payload.repository.full_name)) {
+    if (payload.repository && payload.repository.full_name && project.repo.match(payload.repository.full_name)) {
       projects.push(project);
     }
   });

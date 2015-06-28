@@ -7,8 +7,8 @@ var github = require('./../github');
  */
 module.exports = function(project, options, token) {
   options.logger.info('[%s] Notifying github of build %s', options.buildId, options.uuid)
-  
-  var parts       = project.from.split('/');
+
+  var parts       = project.repo.split('/');
   options.repo    = parts.pop();
   options.user    = parts.pop();
   options.token   = token;

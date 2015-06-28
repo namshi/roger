@@ -24,6 +24,8 @@ _.each(config.projects, function(project, name) {
    * project or for the whole apps, rewrite
    * the git clone URL to include that token
    * in the URL.
+   * 
+   * @TBR when we switch to fully-dynamic roger
    */
   var githubToken = project['github-token'] || (config.auth && config.auth['github']);
   
