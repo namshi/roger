@@ -1,14 +1,15 @@
 var webpack = require('webpack');
 var path = require('path');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var mergeWebpackConfig = require('webpack-config-merger');
 
-module.exports = {
+// Default configurations
+var config =  {
   entry: [
-    'webpack-dev-server/client?http://0.0.0.0:8080', // WebpackDevServer host and port
-    'webpack/hot/only-dev-server',
     './app.jsx', // App entry point
-    './index.html'
+    './index.html',
+    './styles/App.scss'
   ],
-  devtool: process.env.WEBPACK_DEVTOOL || 'source-map',
   output: {
     path: path.join(__dirname, 'dist'),
     filename: 'bundle.js'
@@ -20,11 +21,38 @@ module.exports = {
     loaders: [{
       test: /\.jsx?$/,
       exclude: /(node_modules|bower_components)/,
-      loaders: ['react-hot', 'babel'],
+      loaders: ['babel']
     },
     {
       test: /\.html$/,
-      loader: "file?name=[name].[ext]",
+      loader: "file?name=[name].[ext]"
+    },
+    {
+      test: /\.scss$/,
+      loader: ExtractTextPlugin.extract(
+        'css?sourceMap!' +
+        'sass?sourceMap'
+      )
+    }]
+  },
+  plugins: [
+    new webpack.NoErrorsPlugin(),
+    new ExtractTextPlugin('app.css')
+  ]
+};
+
+// Development specific configurations
+var devConfig = {
+  entry: [
+    'webpack-dev-server/client?http://0.0.0.0:8080', // WebpackDevServer host and port
+    'webpack/hot/only-dev-server'
+  ],
+  devtool: process.env.WEBPACK_DEVTOOL || 'source-map',
+  module: {
+    loaders: [{
+      test: /\.jsx?$/,
+      exclude: /(node_modules|bower_components)/,
+      loaders: ['react-hot', 'babel']
     }]
   },
   devServer: {
@@ -35,6 +63,12 @@ module.exports = {
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoErrorsPlugin()
   ]
 };
+
+var isDev = process.env.NODE_ENV !== 'production';
+if(isDev) {
+  mergeWebpackConfig(config, devConfig);
+}
+
+module.exports = config;

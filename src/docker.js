@@ -13,6 +13,7 @@ var notifications   = require('./notifications');
 var tar             = require('./tar');
 var hooks           = require('./hooks');
 var publisher       = require('./publisher');
+var dispatcher      = require('./dispatcher');
 var yaml            = require('js-yaml');
 var client          = new Docker({socketPath: '/tmp/docker.sock'});
 var docker          = {};
