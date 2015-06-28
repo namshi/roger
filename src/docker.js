@@ -49,7 +49,21 @@ docker.schedule = function(repo, gitBranch, uuid) {
   }
   
   git.clone(cloneUrl, path, gitBranch, logger).then(function(){
-    return yaml.safeLoad(fs.readFileSync(p.join(path, 'build.yml'), 'utf8'));
+    try {
+      return yaml.safeLoad(fs.readFileSync(p.join(path, 'build.yml'), 'utf8'));  
+    } catch(err) {
+      /**
+       * In case the .build.yml is not found, let's build
+       * the smallest possible configuration for the current
+       * build: we will take the repo name and build this
+       * project, ie github.com/antirez/redis will build
+       * under the name "redis".
+       */
+      var buildConfig = {}
+      buildConfig[cloneUrl.split('/').pop()] = {}
+      
+      return buildConfig
+    }
   }).then(function(projects){
     _.each(projects, function(project, name){
       project.id              = repo + '_' + name
