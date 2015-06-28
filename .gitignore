@@ -1,3 +1,5 @@
 db
 node_modules
 registry
+.idea
+client/dist
