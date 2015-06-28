@@ -330,7 +330,7 @@ docker.tag = function(imageId, buildId, branch, buildLogger) {
 docker.getAuth = function(buildId, registry, buildLogger) {
   var options = {};
   
-  if (registry === config.get('auth.dockerhub.username')) {
+  if (registry === 'dockerhub') {
     buildLogger.info('[%s] Image should be pushed to the DockerHub @ hub.docker.com', buildId);
     
     options = config.get('auth.dockerhub');

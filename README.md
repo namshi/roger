@@ -23,17 +23,26 @@ Ready to hack?
 
 ## Installation
 
-Create a configuration file, `config.yml`:
+In your project (hopefully on a github repo),
+create a configuration file, `.build.yml`:
 
 ``` yaml
-projects:
-  redis:
-    branch:       master
-    from:         https://github.com/dockerfile/redis
-    registry:     127.0.0.1:5000
+redis:
+  registry:     127.0.0.1:5000
 ```
 
-then you can clone and run roger:
+then create a `config.yml` file for roger:
+
+``` yaml
+auth:
+  dockerhub: # these credentials are only useful if you need to push to the dockerhub
+    username: user # your username on the dockerhub
+    email:    someone@gmail.com # your...well, you get it
+    password: YOUR_DOCKERHUB_PASSWORD --> see https://github.com/namshi/roger#sensitive-data
+  github: YOUR_GITHUB_TOKEN # General token to be used to authenticate to clone any project or comment on PRs (https://github.com/settings/tokens/new)
+```
+
+so you can clone and run roger:
 
 ```
 git clone git@github.com:namshi/roger.git
@@ -53,7 +62,58 @@ something like:
 Roger running on port 6600
 ```
 
-## Configuration
+## Project configuration
+
+In your repos, you can specify a few different
+configuration options, for example:
+
+``` yaml
+redis: # name of the project, will be the name of the image as well
+  registry:   127.0.0.1:5001 # url of the registry to which we're gonna push
+```
+
+Want to push to the dockerhub?
+
+``` yaml
+redis: # if you don't specify the registry, we'll assume you want to push to a local registry at 127.0.0.1:5000
+  registry:     dockerhub
+```
+
+Want to publish assets to S3? Here's a full overview of what roger
+can do with your project:
+
+``` yaml
+redis:
+  dockerfilePath: some/subdir # location of the dockerfile, omit this if it's in the root of the repo
+  registry:       127.0.0.1:5001
+  revfile:        somedir # means roger will create a rev.txt file with informations about the build at this path
+  after-build: # hooks to execute after an image is built, before pushing it to the registry, ie. tests
+    - ls -la
+    - sleep 1
+  notify:
+    - github
+    - email-ses
+  publish:
+    - 
+      to: s3
+      copy: /src/build/public/ # this is the path inside the container
+      bucket: my-bucket # name of the s3 bucket
+      bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
+      command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)
+      key: AWS_S3_KEY # guess what
+      secret: AWS_S3_SECRET # guess what again
+```
+
+Want to build 2 projects from the same repo?
+
+``` yaml
+redis:
+  dockerfilePath: src
+redis-server:
+  dockerfilePath: server/src
+```
+
+## Server configuration
 
 Roger will read a `/config.yml` file that you
 need to mount in the container:
@@ -77,36 +137,6 @@ notifications: # configs to notify of build failures / successes
       - john.doe@gmail.com # a list of people who will be notified
       - committer # this is a special value that references the email of the commit author
     from: builds@company.com # sender email (needs to be verified on SES: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
-projects: # list of projects that are gonna be built within the app
-  nginx-pagespeed: # name of the project, will be the name of the image as well
-    branch:     master # default branch to build from, optional
-    from:       https://github.com/namshi/docker-node-nginx-pagespeed # url of the git repo
-    registry:   127.0.0.1:5001 # url of the registry to which we're gonna push, only support private registries for now
-    after-build: # hooks to execute after an image is built, before pushing it to the registry, ie. tests
-      - ls -la
-      - sleep 1
-    notify:
-      - github
-      - email-ses
-  redis: # if you don't specify the registry, we'll assume you want to push to the dockerhub
-    branch:       master
-    from:         https://github.com/dockerfile/redis
-  privaterepo: # a private project
-    branch:         master
-    from:           https://github.com/odino/secret
-    dockerfilePath: some/subdir # location of the dockerfile, omit this if it's in the root of the repo
-    github-token:   YOUR_SECRET_TOKEN # project-specific github oauth token (https://github.com/settings/tokens/new)
-    registry:       127.0.0.1:5001
-    revfile:      somedir # means roger will create a rev.txt file with informations about the build at this path
-    publish:
-      - 
-        to: s3
-        copy: /src/build/public/ # this is the path inside the container
-        bucket: my-bucket # name of the s3 bucket
-        bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
-        command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)
-        key: AWS_S3_KEY # guess what
-        secret: AWS_S3_SECRET # guess what again
 ```
 
 ### Sensitive data
@@ -128,9 +158,6 @@ oauth tokens for each project:
 docker run -ti -e ROGER_CONFIG_projects_private-repo_github-token=MY_SECRET_TOKEN -p 8000:5000 roger
 ```
 
-Avoid using underscores in config keys, we are trying
-to fix this in the [library we use to parse the configuration](https://github.com/namshi/reconfig/issues/15).
-
 ## Build triggers
 
 Roger exposes a simple HTTP interface
@@ -144,20 +171,6 @@ Simply add a new webhook to your repo at
 and configure it as follows:
 
 ![github webhook](https://raw.githubusercontent.com/namshi/roger/master/bin/images/webhook.png?token=AAUC5KUrL2asRgmAob6t_Lxp0XVB_LCmks5U0MHgwA%3D%3D)
-
-Roger will know that the hook refers to a
-particular project because it matches the
-repository name with the `from` parameter
-of your project:
-
-``` yaml
-# Your repo full name is hello/world
-
-projects:
-  hello-world:
-    branch:     master
-    from:       https://github.com/hello/world # we are matching this
-```
 
 Roger will build everytime you push to
 github, a new tag is created or you
@@ -175,17 +188,16 @@ bucket by simply specifying the following in your
 project configuration:
 
 ``` yaml
-projects:
-  myproject:
-    publish:
-      - 
-        to: s3
-        copy: /src/build/public/ # this is the path inside the container
-        bucket: my-bucket # name of the s3 bucket
-        bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
-        command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)
-        key: AWS_S3_KEY # guess what
-        secret: AWS_S3_SECRET # guess what again
+myproject:
+  publish:
+    - 
+      to: s3
+      copy: /src/build/public/ # this is the path inside the container
+      bucket: my-bucket # name of the s3 bucket
+      bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
+      command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)
+      key: AWS_S3_KEY # guess what
+      secret: AWS_S3_SECRET # guess what again
 ```
 
 What happens is that we're gonna run a container
@@ -210,30 +222,10 @@ open and roger is building that branch, it
 will then update the PR accordingly.
 
 ``` yaml
-notifications:
-  github: MY_SECRET_TOKEN
 my-project:
-  branch:       master
-  from:         https://github.com/me/awesome-project
   notify:
     - github
 ```
-
-You can also use a per-project github token with:
-
-```
-my-project:
-  branch:       master
-  from:         https://github.com/me/awesome-project
-  notifications:
-    github: YOUR_SECRET_TOKEN
-  notify:
-    - github
-```
-
-else roger will use the general token set in the
-`auth` section of the config file, so you don't
-have to specify the token for each project.
 
 ### Email (through Amazon SES)
 
@@ -243,29 +235,6 @@ the `email-ses` handler that will
 send emails through [Amazon SES](http://aws.amazon.com/ses/).
 
 ![ses notifications](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-ses.png?token=AAUC5L9Lk4x65t7ttfcE1htsbWOkfgnuks5U09A4wA%3D%3D)
-
-``` yaml
-notifications:
-  email-ses:
-    access-key: 123456
-    secret:     1a2b3c4d5e6f
-    region:     eu-west-1
-    to: 
-      - you@example.org
-      - build-status@example.org
-    from: roger@example.org
-my-project:
-  branch:       master
-  from:         https://github.com/me/awesome-project
-  notify:
-    - email-ses
-```
-
-The `from` address needs to be
-[verified on SES](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html).
-
-Just like any other notiication, you can override the configuration
-for SES on a project basic:
 
 ```
 my-project:
@@ -283,6 +252,9 @@ my-project:
       from: roger@example.org
 ```
 
+The `from` address needs to be
+[verified on SES](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html).
+
 ## Hooks
 
 Roger has the concept of hooks, which are
@@ -299,8 +271,6 @@ will most likely configure the project as follows:
 
 ```
 my-node-app:
-  branch:   master
-  from:     https://github.com/me/my-node-app
   registry: hub.docker.io
   after-build:
     - npm test
@@ -315,56 +285,24 @@ Neat, ah?
 
 ## APIs
 
-### List projects
-
-You can get a list of projects at
-`/api/projects/` or of a specific
-project at `/api/projects/{project}`, ie.
-`/api/projects/redis/`
-
-``` json
-# GET /api/projects/redis
-{
-    "branch":   "master",
-    "from":     "https://github.com/dockerfile/redis",
-    "name":     "redis",
-    "registry": "odino"
-}
-```
+Under **heavy** development :)
 
 ### Triggering builds
 
 You can simply issue a POST request to the endpoint
-`/api/projects/{project}[:{branch}]/build`.
+`/api/v2/build?url=REPO_URL&branch=BRANCH`.
 
 For example, both of these URLs are valid endpoints:
 
-* `/api/projects/redis/build`
-* `/api/projects/redis:master/build`
+* `/api/v2/build?url=https://github.com/redis/redis`
+* `/api/v2/build?url=https://github.com/redis/redis&branch=master`
 
-If you don't specify a branch, the one specified in
-the configuration file will be built. If you didn't
-add a default branch in the configuration, `master`
+If you don't specify a branch, `master`
 will be used.
 
 The same endpoint supports `GET` requests as well,
 though it's only recommended to use this method when
 you want to manually trigger a build ([here's why](http://www.looah.com/source/view/2284)).
-
-``` json
-# POST /api/projects/redis:master/build
-{
-    "result": "build scheduled",
-    "build": {
-        "project": "redis",
-        "branch": "master",
-        "id": "27f466aa-fce9-4323-9642-55f4cf760506",
-        "path": "/tmp/roger-builds/sources/27f466aa-fce9-4323-9642-55f4cf760506",
-        "tar": "/tmp/roger-builds/27f466aa-fce9-4323-9642-55f4cf760506.tar",
-        "tag": "odino/redis:master"
-    }
-}
-```
 
 ### Build status
 
@@ -384,124 +322,6 @@ You can see a build's status by visiting
 ...
 ...
 ...
-```
-
-This is the only API that uses plaintext
-responses.
-
-When you trigger a build, you will receive
-a link to the build status API:
-
-```
-{
-    "result": "build scheduled",
-    "build": {
-        ...
-        "status": "/api/builds/cb5ea16d-5266-4018-b571-954e75b825e0",
-        ...
-    }
-    ...
-}
-```
-
-You can just visit that URL to see the build
-output, which will be streamed until the build
-is complete.
-
-### Build all projects
-
-Sometimes it is useful to trigger builds for
-all projects, especially when the server restarts
-or simply because your registry might have gone
-on vacation: simply hit `/api/build-all` and all
-projects will build their default branch in
-parallel.
-
-``` json
-# POST /api/build-all
-{
-    "builds": [
-        {
-            "project": "nginx-pagespeed",
-            "branch": "master",
-            "id": "c57e73ee-3f15-47ee-b452-a9efc5255fc5",
-            "path": "/tmp/roger-builds/sources/c57e73ee-3f15-47ee-b452-a9efc5255fc5",
-            "tar": "/tmp/roger-builds/c57e73ee-3f15-47ee-b452-a9efc5255fc5.tar",
-            "tag": "127.0.0.1:5001/nginx-pagespeed:master"
-        },
-        {
-            "project": "redis",
-            "branch": "master",
-            "id": "3618ea27-7463-4166-967c-773e7abbdab6",
-            "path": "/tmp/roger-builds/sources/3618ea27-7463-4166-967c-773e7abbdab6",
-            "tar": "/tmp/roger-builds/3618ea27-7463-4166-967c-773e7abbdab6.tar",
-            "tag": "odino/redis:master"
-        },
-        {
-            "project": "privaterepo",
-            "branch": "master",
-            "id": "2d4be379-36cf-4c88-834f-08c1902fcb68",
-            "path": "/tmp/roger-builds/sources/2d4be379-36cf-4c88-834f-08c1902fcb68",
-            "tar": "/tmp/roger-builds/2d4be379-36cf-4c88-834f-08c1902fcb68.tar",
-            "tag": "127.0.0.1:5001/privaterepo:master"
-        }
-    ],
-    "_links": {
-        "config": {
-            "href": "/api/config"
-        },
-        "projects": {
-            "href": "/api/projects"
-        },
-        "self": {
-            "href": "/api/build-all"
-        }
-    }
-}
-```
-
-### List configuration
-
-You can access roger's configuration
-at `/api/config`.
-
-``` json
-# GET /api/config
-{
-    "auth": {
-        "dockerhub": {
-            "username": "odino",
-            "email": "alessandro.nadalin@gmail.com",
-            "password": "*****"
-        },
-        "github": "*****"
-    },
-    "projects": {
-        "nginx-pagespeed": {
-            "branch": "master",
-            "from": "https://github.com/namshi/docker-node-nginx-pagespeed",
-            "registry": "127.0.0.1:5001",
-            "after-build": [
-                "ls -la",
-                "sleep 1"
-            ],
-            "name": "nginx-pagespeed"
-        },
-        "redis": {
-            "branch": "master",
-            "from": "https://github.com/dockerfile/redis",
-            "name": "redis",
-            "registry": "odino"
-        },
-        "privaterepo": {
-            "branch": "master",
-            "from": "https://YOUR_SECRET_TOKEN@github.com/odino/secret",
-            "github-token": "*****",
-            "registry": "127.0.0.1:5001",
-            "name": "privaterepo"
-        }
-    }
-}
 ```
 
 ## Contributing
@@ -626,8 +446,5 @@ a must.
   * view build of a project
   * wall (use query parameters to include / exclude projects)
 * build tracking
-  * save build result
   * persist to SQLite
   * mount sqlite
-* api
-  * `/api/test` an api that takes an example config file, runs builds and asserts their output

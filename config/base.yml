@@ -11,3 +11,4 @@ routes:
   buildsByProject:  '/api/projects/:project/builds$'
   buildByProject:   '/api/projects/:project/builds/:id'
   github-hooks:     '/public/hooks/github'
+  github-hooks-v2:  '/public/api/hooks/github'
