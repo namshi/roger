@@ -4,6 +4,10 @@ auth:
     email:    alessandro.nadalin@gmail.com # your...well, you get it
     password: YOUR_DOCKERHUB_PASSWORD --> see https://github.com/namshi/roger#sensitive-data
   github: YOUR_SECRET_TOKEN # General token to be used to authenticate to clone any project (https://github.com/settings/tokens/new)
+publisher:
+  s3: # this will be combined with the s3 configuration in the project
+    key: AWS_S3_KEY # guess what
+    secret: AWS_S3_SECRET # guess what again
 projects: # list of projects that are gonna be built within the app
   nginx-pagespeed: # name of the project, will be the name of the image as well
     branch:     master # default branch to build from, optional
@@ -22,11 +26,9 @@ projects: # list of projects that are gonna be built within the app
     registry:     127.0.0.1:5000
     revfile:      somedir # means roger will create a rev.txt file with informations about the build at this path
     publish:
-      - 
+      -
         to: s3
         copy: /src/build/public/ # this is the path inside the container
         bucket: my-bucket # name of the s3 bucket
         bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
         command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)
-        key: AWS_S3_KEY # guess what
-        secret: AWS_S3_SECRET # guess what again
