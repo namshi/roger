@@ -151,7 +151,7 @@ Simply add a new webhook to your repo at
 `https://github.com/YOU/YOUR_PROJECT/settings/hooks/new`
 and configure it as follows:
 
-![github webhook](https://raw.githubusercontent.com/namshi/roger/master/bin/images/webhook.png?token=AAUC5KUrL2asRgmAob6t_Lxp0XVB_LCmks5U0MHgwA%3D%3D)
+![github webhook](https://raw.githubusercontent.com/namshi/roger/spring-cleaning/bin/images/webhook.png?token=AAUC5PVL0sercYi9SEPGcesB7LRrSR7zks5Vnjb5wA%3D%3D)
 
 Roger will build everytime you push to
 github, a new tag is created or you
