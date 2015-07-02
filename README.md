@@ -307,7 +307,7 @@ a `limit` parameter to the query string.
 ### Getting a build
 
 `/api/builds/BUILD_ID` will return you the
-details of a build.
+details of a build:
 
 ``` json
 {
@@ -324,7 +324,22 @@ details of a build.
 ```
 
 If you add `/log` at the end of the URL (ie. `/api/builds/1234/log`)
-you will be streamed the log output of that build.
+you will be streamed the log output of that build:
+
+```
+2015-01-27T19:18:34.810Z - info: [127.0.0.1:5000/redis:patch-1] Scheduled a build of cb5ea16d-5266-4018-b571-954e75b825e0
+2015-01-27T19:18:34.810Z - info: Cloning https://github.com/namshi/redis:patch-1 in /tmp/roger-builds/sources/cb5ea16d-5266-4018-b571-954e75b825e0
+2015-01-27T19:18:34.816Z - info: git clone https://github.com/namshi/redis: Cloning into '/tmp/roger-builds/sources/cb5ea16d-5266-4018-b571-954e75b825e0'...
+
+2015-01-27T19:18:37.274Z - info: [127.0.0.1:5000/redis:patch-1] Created tarball for cb5ea16d-5266-4018-b571-954e75b825e0
+2015-01-27T19:18:37.365Z - info: Build of 127.0.0.1:5000/redis:patch-1 is in progress...
+2015-01-27T19:18:37.365Z - info: [127.0.0.1:5000/redis:patch-1] Step 0 : FROM dockerfile/redis
+
+2015-01-27T19:18:37.365Z - info: [127.0.0.1:5000/redis:patch-1]  ---> c08280595650
+...
+...
+...
+```
 
 ### Triggering builds
 
@@ -342,26 +357,6 @@ will be used.
 The same endpoint supports `POST` requests as well, `GET`
 should only really be used for debugging or so 
 ([here's why](http://www.looah.com/source/view/2284)).
-
-### Build status
-
-You can see a build's status by visiting
-`/api/builds/BUILD_ID`.
-
-```
-2015-01-27T19:18:34.810Z - info: [127.0.0.1:5000/nginx-pagespeed:something] Scheduled a build of cb5ea16d-5266-4018-b571-954e75b825e0
-2015-01-27T19:18:34.810Z - info: Cloning https://github.com/namshi/docker-node-nginx-pagespeed:something in /tmp/roger-builds/sources/cb5ea16d-5266-4018-b571-954e75b825e0
-2015-01-27T19:18:34.816Z - info: git clone https://github.com/namshi/docker-node-nginx-pagespeed: Cloning into '/tmp/roger-builds/sources/cb5ea16d-5266-4018-b571-954e75b825e0'...
-
-2015-01-27T19:18:37.274Z - info: [127.0.0.1:5000/nginx-pagespeed:something] Created tarball for cb5ea16d-5266-4018-b571-954e75b825e0
-2015-01-27T19:18:37.365Z - info: Build of 127.0.0.1:5000/nginx-pagespeed:something is in progress...
-2015-01-27T19:18:37.365Z - info: [127.0.0.1:5000/nginx-pagespeed:something] Step 0 : FROM dockerfile/nodejs
-
-2015-01-27T19:18:37.365Z - info: [127.0.0.1:5000/nginx-pagespeed:something]  ---> c08280595650
-...
-...
-...
-```
 
 ## Contributing
 
