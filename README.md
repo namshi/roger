@@ -139,25 +139,6 @@ notifications: # configs to notify of build failures / successes
     from: builds@company.com # sender email (needs to be verified on SES: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
 ```
 
-### Sensitive data
-
-You can also configure the app from environment
-variables, which means that in case of sensitive
-information like Github OAuth tokens you might
-not want to store them directly in the config
-file.
-
-The format of these environment variables is
-`ROGER_CONFIG_underscore_separated_path_in_your_configuration`,
-ie. `ROGER_CONFIG_projects_private-repo_github-token=MY_SECRET_TOKEN`.
-
-For example, you can start roger specifying the
-oauth tokens for each project:
-
-```
-docker run -ti -e ROGER_CONFIG_projects_private-repo_github-token=MY_SECRET_TOKEN -p 8000:5000 roger
-```
-
 ## Build triggers
 
 Roger exposes a simple HTTP interface
@@ -285,24 +266,60 @@ Neat, ah?
 
 ## APIs
 
-Under **heavy** development :)
+### Listing all projects
+
+`/api/projects` will return you the latest
+10 projects that were updated (added on roger,
+a build was triggered, etc).
+
+You can customize the number of projects you will
+get back by adding a `limit` parameter to the
+query string.
+
+``` json
+{
+    "projects": [
+        {
+            "name": "https://github.com/company/redis__redis-server",
+            "alias": "redis-server (company/redis)",
+            "latest_build": {
+                "branch": "patch-1",
+                "project": "https://github.com/company/redis__redis-server",
+                "status": "passed",
+                "id": "0715a3b5-43fe-4d07-9705-82641db07c25-redis-server",
+                "tag": "registry.company.com/redis-server:patch-1",
+                "created_at": "2015-07-02T08:44:28+00:00",
+                "updated_at": "2015-07-02T08:45:09+00:00"
+            }
+        },
+        ...
+    ]
+}
+```
+
+### Listing all builds
+
+`/api/builds` will return you the latest
+10 builds roger ran. You can customize the
+number of builds you will get back by adding
+a `limit` parameter to the query string.
 
 ### Triggering builds
 
-You can simply issue a POST request to the endpoint
-`/api/v2/build?url=REPO_URL&branch=BRANCH`.
+You can simply issue a GET request to the endpoint
+`/api/v2/build?repo=REPO_URL&branch=BRANCH`.
 
 For example, both of these URLs are valid endpoints:
 
-* `/api/v2/build?url=https://github.com/redis/redis`
-* `/api/v2/build?url=https://github.com/redis/redis&branch=master`
+* `/api/build?repo=https://github.com/redis/redis`
+* `/api/build?repo=https://github.com/redis/redis&branch=master`
 
 If you don't specify a branch, `master`
 will be used.
 
-The same endpoint supports `GET` requests as well,
-though it's only recommended to use this method when
-you want to manually trigger a build ([here's why](http://www.looah.com/source/view/2284)).
+The same endpoint supports `POST` requests as well, `GET`
+should only really be used for debugging or so 
+([here's why](http://www.looah.com/source/view/2284)).
 
 ### Build status
 

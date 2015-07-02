@@ -66,7 +66,7 @@ docker.schedule = function(repo, gitBranch, uuid) {
     }
   }).then(function(projects){
     _.each(projects, function(project, name){
-      project.id              = repo + '_' + name
+      project.id              = repo + '__' + name
       project.name            = name
       project.repo            = repo
       project.homepage        = repo
@@ -146,91 +146,6 @@ docker.build = function(project, uuid, path, gitBranch, branch){
     buildLogger.error('[%s] Error sending notifications for %s ("%s")', buildId, uuid, err.message || err.error);
   });
 }
-
-/**
- * Builds the specified branch of a project.
- * 
- * @return promise
- */
-docker.oldBuild = function(project, branch, uuid) {
-  var gitBranch   = branch || project.branch
-  project.repo = project.from
-  
-  if (branch === project.branch) {
-    branch = 'latest';
-  }
-  
-  var now         = moment();
-  var timestamp   = Date.now() / 1000 | 0;
-  var path        = '/tmp/roger-builds/sources/' + uuid;
-  var imageId     = project.registry + '/' + project.name;
-  var buildId     = imageId + ':' + branch;
-  var tarPath     = '/tmp/roger-builds/' + uuid  + '.tar';
-  var logFile     = '/tmp/roger-builds/' + uuid  + '.log';
-  var buildLogger = getBuildLogger(logFile);
-  var author;
-  
-  storage.saveBuild(uuid, buildId, project.name, branch, 'started');
-  buildLogger.info('[%s] Scheduled a build of %s', buildId, uuid);
-  
-  git.clone(project.from, path, gitBranch, buildLogger).then(function(){
-    return git.getLastCommit(path, gitBranch)
-  }).then(function(commit){
-    author = commit.author().email();
-    
-    return docker.addRevFile(gitBranch, path, commit, project, buildLogger, {buildId: buildId});
-  }).then(function(){
-    var dockerfilePath = path;
-    
-    if (project.dockerfilePath) {
-      dockerfilePath = p.join(path, project.dockerfilePath);
-    }
-    
-    return tar.create(tarPath,  dockerfilePath + '/');
-  }).then(function(){
-    buildLogger.info('[%s] Created tarball for %s', buildId, uuid);
-    
-    return docker.buildImage(project, tarPath, imageId + ':' + branch, buildId, buildLogger); 
-  }).then(function(){
-    buildLogger.info('[%s] %s built succesfully', buildId, uuid);
-    buildLogger.info('[%s] Tagging %s', buildId, uuid);
-    
-    return docker.tag(imageId, buildId, branch, buildLogger);
-  }).then(function(image){
-    return publisher.publish(client, buildId, project, logger).then(function(){
-      return image;
-    });
-  }).then(function(image){
-    buildLogger.info('[%s] Running after-build hooks for %s', buildId, uuid);
-    
-    return hooks.run('after-build', buildId, project, client, buildLogger).then(function(){
-      return image;
-    });
-  }).then(function(image){
-    buildLogger.info('[%s] Ran after-build hooks for %s', buildId, uuid);
-    buildLogger.info('[%s] Pushing %s to %s', buildId, uuid, project.registry);
-    
-    return docker.push(image, buildId, uuid, branch, project.registry, buildLogger);
-  }).then(function(){
-    storage.saveBuild(uuid, buildId, project.name, branch, 'passed');
-    buildLogger.info('[%s] Finished build %s in %s #SWAG', buildId, uuid, moment(now).fromNow(Boolean));
-    
-    return true;
-  }).catch(function(err){
-    var message = err.message || err.error || err;
-
-    storage.saveBuild(uuid, buildId, project.name, branch, 'failed');
-    buildLogger.error('[%s] BUILD %s FAILED! ("%s") #YOLO', buildId, uuid, message);
-    
-    return new Error(message);
-  }).then(function(result){
-    notifications.trigger(project, branch, {author: author, project: project, result: result, logger: buildLogger, uuid: uuid, buildId: buildId});
-  }).catch(function(err){
-    buildLogger.error('[%s] Error sending notifications for %s ("%s")', buildId, uuid, err.message || err.error);
-  });
-  
-  return {path: path, tar: tarPath, tag: buildId, log: logFile}
-};
 
 /**
  * Adds a revfile at the build path
@@ -334,6 +249,21 @@ docker.getAuth = function(buildId, registry, buildLogger) {
     buildLogger.info('[%s] Image should be pushed to the DockerHub @ hub.docker.com', buildId);
     
     options = config.get('auth.dockerhub');
+    
+    if (!options || !options.username || !options.email || !options.password) {
+      buildLogger.error('It seems that the build "%s" should be pushed to the dockerhub', buildId);
+      buildLogger.error('but you forgot to add your credentials in the config file "%s"', argv.config);
+      buildLogger.error();
+      buildLogger.error('Please specify:');
+      buildLogger.error(' - username');
+      buildLogger.error(' - email address');
+      buildLogger.error(' - password');
+      buildLogger.error();
+      buildLogger.error('See https://github.com/namshi/roger#configuration');
+      
+      throw new Error('Fatality! MUAHAHUAAHUAH!');
+    }
+    
     /**
      * Ok, we can do better.
      * But it's 5.39 in the morning.
