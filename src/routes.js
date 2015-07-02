@@ -47,11 +47,28 @@ routes.projects = function(req, res, next) {
   next();
 }
 
+
+/**
+ * Single build's details
+ */
+routes.singleBuild = function(req, res, next) {
+  var build = storage.getBuild(req.params.build);
+  
+  if (build) {
+    res.status(200).body = {build: build}
+    next()
+    return
+  }
+  
+  res.status(404);
+  next();
+};
+
 /**
  * Shows the progressive status of the build
  * by keeping an eye on its log file.
  */
-routes.buildStatus = function(req, res, next) {
+routes.buildLog = function(req, res, next) {
   var logFile = '/tmp/roger-builds/' + req.params.build + '.log';
   
   if (fs.existsSync(logFile)) {
@@ -155,7 +172,8 @@ routes.bind = function(app) {
   app.get(router.generate('config'), routes.config);
   app.get(router.generate('builds'), routes.builds);
   app.get(router.generate('projects'), routes.projects);
-  app.get(router.generate('build'), routes.buildStatus);
+  app.get(router.generate('build'), routes.singleBuild);
+  app.get(router.generate('build-log'), routes.buildLog);
   app.get(router.generate('build-project'), routes.build);
   app.post(router.generate('build-project'), routes.build);
   app.post(router.generate('github-hooks'), routes.buildFromGithubHook);

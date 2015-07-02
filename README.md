@@ -304,6 +304,28 @@ query string.
 number of builds you will get back by adding
 a `limit` parameter to the query string.
 
+### Getting a build
+
+`/api/builds/BUILD_ID` will return you the
+details of a build.
+
+``` json
+{
+    "build": {
+        "branch": "patch-1",
+        "project": "https://github.com/company/redis__redis",
+        "status": "passed",
+        "id": "0715a3b5-43fe-4d07-9705-82641db07c25-redis",
+        "tag": "registry.company.com/redis:patch-1",
+        "created_at": "2015-07-02T08:44:28+00:00",
+        "updated_at": "2015-07-02T08:45:09+00:00"
+    }
+}
+```
+
+If you add `/log` at the end of the URL (ie. `/api/builds/1234/log`)
+you will be streamed the log output of that build.
+
 ### Triggering builds
 
 You can simply issue a GET request to the endpoint

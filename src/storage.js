@@ -98,4 +98,11 @@ storage.getBuildByProject = function(id, projectName) {
   return _.where(data.builds, {project: projectName, id: id})[0];
 };
 
+/**
+ * Returns a particular build for a project.
+ */
+storage.getBuild = function(id) {
+  return _.where(data.builds, {id: id})[0];
+};
+
 module.exports = storage;

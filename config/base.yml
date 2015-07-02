@@ -6,4 +6,5 @@ routes:
   build-project:    '/api/build'
   builds:           '/api/builds'
   build:            '/api/builds/:build'
+  build-log:        '/api/builds/:build/log'
   github-hooks:     '/public/api/hooks/github'
