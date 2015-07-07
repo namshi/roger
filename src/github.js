@@ -147,55 +147,6 @@ github.getProjectsFromHook = function(payload) {
  * Retrieves build information from
  * a github hook.
  * 
- * All you need to know is which projects
- * this hook refers to and the branch / tag
- * we need to build.
- * 
- * A hook can refer to multiple projects
- * as people might store multiple dockerfiles
- * in the same github repo.
- */
-github.getOldBuildInfoFromHook = function(req) {
-  var deferred = Q.defer();
-  var payload  = req.body;
-  var projects = github.getProjectsFromHook(payload);
-  var info     = {};
-  
-  if (projects.length > 0) {
-    info.projects  = projects;
-    
-    if (req.headers['x-github-event'] === 'push') {
-      info.branch  = payload.ref.replace('refs/heads/', '');
-      deferred.resolve(info);
-    } else if (req.headers['x-github-event'] === 'create' && payload.ref_type === 'tag') {
-      info.branch = payload.ref;
-      deferred.resolve(info);
-    } else if (req.headers['x-github-event'] === 'issue_comment' && projects[0]['github-token'] && payload.issue.pull_request && payload.comment.body === 'build please!') {
-      var user  = payload.repository.owner.login;
-      var repo  = payload.repository.name;
-      var nr    = payload.issue.pull_request.url.split('/').pop();
-      
-      getPullRequest(projects[0]['github-token'], user, repo, nr).then(function(pr){
-        info.branch = pr.head.ref;
-        deferred.resolve(info);
-      }).catch(function(err){
-        logger.error('Error while retrieving PR from github ("%s")', err.message);
-        deferred.reject(err);
-      });
-    } else {
-      deferred.reject('Could not obtain build info from the hook payload');
-    }
-  } else {
-    deferred.reject('No project specified');
-  }
-  
-  return deferred.promise;
-};
-
-/**
- * Retrieves build information from
- * a github hook.
- * 
  * All you need to know is which repo /
  * branch this hook refers to.
  */

@@ -8,27 +8,3 @@ publisher:
   s3: # this will be combined with the s3 configuration in the project
     key: AWS_S3_KEY # guess what
     secret: AWS_S3_SECRET # guess what again
-projects: # list of projects that are gonna be built within the app
-  nginx-pagespeed: # name of the project, will be the name of the image as well
-    branch:     master # default branch to build from, optional
-    from:       https://github.com/namshi/docker-node-nginx-pagespeed # url of the git repo
-    registry:   127.0.0.1:5000 # url of the registry to which we're gonna push, only support private registries for now
-    after-build: # hooks to execute after an image is built, before pushing it to the registry, ie. tests
-      - ls -la
-      - sleep 1
-  redis: # if you don't specify the registry, we'll assume you want to push to the dockerhub
-    branch:       master
-    from:         https://github.com/dockerfile/redis
-  privaterepo: # a private project
-    branch:       master
-    from:         https://github.com/odino/holland
-    github-token: YOUR_SECRET_TOKEN # project-specific github oauth token (https://github.com/settings/tokens/new)
-    registry:     127.0.0.1:5000
-    revfile:      somedir # means roger will create a rev.txt file with informations about the build at this path
-    publish:
-      -
-        to: s3
-        copy: /src/build/public/ # this is the path inside the container
-        bucket: my-bucket # name of the s3 bucket
-        bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
-        command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)

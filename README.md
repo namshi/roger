@@ -139,25 +139,6 @@ notifications: # configs to notify of build failures / successes
     from: builds@company.com # sender email (needs to be verified on SES: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
 ```
 
-### Sensitive data
-
-You can also configure the app from environment
-variables, which means that in case of sensitive
-information like Github OAuth tokens you might
-not want to store them directly in the config
-file.
-
-The format of these environment variables is
-`ROGER_CONFIG_underscore_separated_path_in_your_configuration`,
-ie. `ROGER_CONFIG_projects_private-repo_github-token=MY_SECRET_TOKEN`.
-
-For example, you can start roger specifying the
-oauth tokens for each project:
-
-```
-docker run -ti -e ROGER_CONFIG_projects_private-repo_github-token=MY_SECRET_TOKEN -p 8000:5000 roger
-```
-
 ## Build triggers
 
 Roger exposes a simple HTTP interface
@@ -170,7 +151,7 @@ Simply add a new webhook to your repo at
 `https://github.com/YOU/YOUR_PROJECT/settings/hooks/new`
 and configure it as follows:
 
-![github webhook](https://raw.githubusercontent.com/namshi/roger/master/bin/images/webhook.png?token=AAUC5KUrL2asRgmAob6t_Lxp0XVB_LCmks5U0MHgwA%3D%3D)
+![github webhook](https://raw.githubusercontent.com/namshi/roger/spring-cleaning/bin/images/webhook.png?token=AAUC5PVL0sercYi9SEPGcesB7LRrSR7zks5Vnjb5wA%3D%3D)
 
 Roger will build everytime you push to
 github, a new tag is created or you
@@ -285,44 +266,97 @@ Neat, ah?
 
 ## APIs
 
-Under **heavy** development :)
+### Listing all projects
+
+`/api/projects` will return you the latest
+10 projects that were updated (added on roger,
+a build was triggered, etc).
+
+You can customize the number of projects you will
+get back by adding a `limit` parameter to the
+query string.
+
+``` json
+{
+    "projects": [
+        {
+            "name": "https://github.com/company/redis__redis-server",
+            "alias": "redis-server (company/redis)",
+            "latest_build": {
+                "branch": "patch-1",
+                "project": "https://github.com/company/redis__redis-server",
+                "status": "passed",
+                "id": "0715a3b5-43fe-4d07-9705-82641db07c25-redis-server",
+                "tag": "registry.company.com/redis-server:patch-1",
+                "created_at": "2015-07-02T08:44:28+00:00",
+                "updated_at": "2015-07-02T08:45:09+00:00"
+            }
+        },
+        ...
+    ]
+}
+```
+
+### Listing all builds
+
+`/api/builds` will return you the latest
+10 builds roger ran. You can customize the
+number of builds you will get back by adding
+a `limit` parameter to the query string.
+
+### Getting a build
+
+`/api/builds/BUILD_ID` will return you the
+details of a build:
+
+``` json
+{
+    "build": {
+        "branch": "patch-1",
+        "project": "https://github.com/company/redis__redis",
+        "status": "passed",
+        "id": "0715a3b5-43fe-4d07-9705-82641db07c25-redis",
+        "tag": "registry.company.com/redis:patch-1",
+        "created_at": "2015-07-02T08:44:28+00:00",
+        "updated_at": "2015-07-02T08:45:09+00:00"
+    }
+}
+```
+
+If you add `/log` at the end of the URL (ie. `/api/builds/1234/log`)
+you will be streamed the log output of that build:
+
+```
+2015-01-27T19:18:34.810Z - info: [127.0.0.1:5000/redis:patch-1] Scheduled a build of cb5ea16d-5266-4018-b571-954e75b825e0
+2015-01-27T19:18:34.810Z - info: Cloning https://github.com/namshi/redis:patch-1 in /tmp/roger-builds/sources/cb5ea16d-5266-4018-b571-954e75b825e0
+2015-01-27T19:18:34.816Z - info: git clone https://github.com/namshi/redis: Cloning into '/tmp/roger-builds/sources/cb5ea16d-5266-4018-b571-954e75b825e0'...
+
+2015-01-27T19:18:37.274Z - info: [127.0.0.1:5000/redis:patch-1] Created tarball for cb5ea16d-5266-4018-b571-954e75b825e0
+2015-01-27T19:18:37.365Z - info: Build of 127.0.0.1:5000/redis:patch-1 is in progress...
+2015-01-27T19:18:37.365Z - info: [127.0.0.1:5000/redis:patch-1] Step 0 : FROM dockerfile/redis
+
+2015-01-27T19:18:37.365Z - info: [127.0.0.1:5000/redis:patch-1]  ---> c08280595650
+...
+...
+...
+```
 
 ### Triggering builds
 
-You can simply issue a POST request to the endpoint
-`/api/v2/build?url=REPO_URL&branch=BRANCH`.
+You can simply issue a GET request to the endpoint
+`/api/v2/build?repo=REPO_URL&branch=BRANCH`.
 
 For example, both of these URLs are valid endpoints:
 
-* `/api/v2/build?url=https://github.com/redis/redis`
-* `/api/v2/build?url=https://github.com/redis/redis&branch=master`
+* `/api/build?repo=https://github.com/redis/redis`
+* `/api/build?repo=https://github.com/redis/redis&branch=master`
 
 If you don't specify a branch, `master`
 will be used.
 
-The same endpoint supports `GET` requests as well,
-though it's only recommended to use this method when
-you want to manually trigger a build ([here's why](http://www.looah.com/source/view/2284)).
-
-### Build status
-
-You can see a build's status by visiting
-`/api/builds/BUILD_ID`.
-
-```
-2015-01-27T19:18:34.810Z - info: [127.0.0.1:5000/nginx-pagespeed:something] Scheduled a build of cb5ea16d-5266-4018-b571-954e75b825e0
-2015-01-27T19:18:34.810Z - info: Cloning https://github.com/namshi/docker-node-nginx-pagespeed:something in /tmp/roger-builds/sources/cb5ea16d-5266-4018-b571-954e75b825e0
-2015-01-27T19:18:34.816Z - info: git clone https://github.com/namshi/docker-node-nginx-pagespeed: Cloning into '/tmp/roger-builds/sources/cb5ea16d-5266-4018-b571-954e75b825e0'...
-
-2015-01-27T19:18:37.274Z - info: [127.0.0.1:5000/nginx-pagespeed:something] Created tarball for cb5ea16d-5266-4018-b571-954e75b825e0
-2015-01-27T19:18:37.365Z - info: Build of 127.0.0.1:5000/nginx-pagespeed:something is in progress...
-2015-01-27T19:18:37.365Z - info: [127.0.0.1:5000/nginx-pagespeed:something] Step 0 : FROM dockerfile/nodejs
-
-2015-01-27T19:18:37.365Z - info: [127.0.0.1:5000/nginx-pagespeed:something]  ---> c08280595650
-...
-...
-...
-```
+The same endpoint supports `POST` requests as well, `GET`
+should only really be used for debugging or so 
+([here's why](http://www.looah.com/source/view/2284)).
 
 ## Contributing
 
