@@ -43,6 +43,7 @@ git.clone = function(repo, path, branch, logger) {
   
   clone.on('close', function (code) {
     if (code === 0) {
+      logger.info('git clone %s: finished cloning', utils.obfuscateString(repo));
       deferred.resolve();
     } else {
       deferred.reject('child process exited with status ' + code);

@@ -28,7 +28,11 @@ notifications.trigger = function(project, branch, options){
       
       var notificationOptions = (project.notifications && project.notifications[handler]) || config.get('notifications.' + handler);
       
-      require('./notifications/' + handler)(project, _.clone(options), notificationOptions);
+      try {
+        require('./notifications/' + handler)(project, _.clone(options), notificationOptions);
+      } catch(err) {
+        options.logger.info('[%s] Error with notifying %s: %s', options.buildId, handler, err.toString());
+      }
     })
   }
 };
