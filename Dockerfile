@@ -13,6 +13,13 @@ RUN apt-get update && \
 RUN mkdir /tmp/roger-builds
 
 COPY . /src
+
+RUN npm cache clean
+
+WORKDIR /src/src/client
+RUN npm install
+RUN npm run build
+
 WORKDIR /src
 RUN npm install
 
