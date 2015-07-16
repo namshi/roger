@@ -18,7 +18,7 @@ notifications.trigger = function(project, branch, options){
     comments = ['[' + options.project.name + '] Build ' + options.uuid + ' broken: ' + options.result.message];
   }
   
-  comments.push("You can check the build output at " + router.generate('build', {build: options.uuid}, true));
+  comments.push("You can check the build output at " + router.generate('build-link', {build: options.uuid, projectName: project.name}, true));
   
   if (_.isArray(project.notify)) {
     _.each(project.notify, function(handler){

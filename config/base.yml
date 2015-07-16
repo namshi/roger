@@ -7,4 +7,5 @@ routes:
   builds:           '/api/builds'
   build:            '/api/builds/:build'
   build-log:        '/api/builds/:build/log'
+  build-link:       '/#/projects/:projectName/:build'
   github-hooks:     '/public/api/hooks/github'
