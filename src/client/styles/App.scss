@@ -1,0 +1,74 @@
+html,body{
+  height: 100%;
+  padding: 0;
+}
+.full-width {
+  width: 100%;
+}
+.content-wrapper {
+  min-height: 100vh;
+  overflow: hidden;
+  padding-bottom: 30px;
+}
+#sideBar, #mainContent {
+  padding-bottom: 9999px;
+  margin-bottom: -9999px;
+}
+#mainContent {
+  border-left: 5px solid #dedede;
+}
+.build-header {
+  padding-bottom: 15px;
+}
+.projects-list {
+  margin-top: 20px;
+}
+
+/* Project component */
+.project {
+  margin-top: 10px;
+}
+.project__build {
+  border: none;
+  border-left: 10px solid transparent;
+  box-shadow: -1px 1px 5px #D2D2D2;
+
+  .list-group-item {
+    border-radius: 0;
+  }
+
+  &--started {
+    border-left-color: #F0AD4E;
+  }
+  &--passed {
+    border-left-color: #3FA75F;
+  }
+  &--failed {
+    border-left-color: #DB423C;
+  }
+}
+
+/*Project details component*/
+
+.project-details__build-branch,
+.project-details__build-status {
+  margin-left: 10px;
+}
+
+.build-output,
+.build-output__log {
+  background-color: #000;
+  color: lightgreen;
+}
+.build-output__header {
+  color: #21D4F4;
+  .title {
+    color: lightblue;
+    font-weight: bold;
+  }
+}
+.build-output__log {
+  width: 100%;
+  max-height: 75vh;
+  overflow: scroll;
+}

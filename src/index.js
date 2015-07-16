@@ -4,6 +4,7 @@ var logger  = require('./logger');
 var config  = require('./config');
 var routes  = require('./routes');
 var utils   = require('./utils');
+var socket  = require('./socket');
 
 /**
  * Print the config while booting,
@@ -23,5 +24,7 @@ routes.bind(app);
  * #swag
  */
 var port = 6600;
-app.listen(port);
+var server = app.listen(port);
+// enable websockets support
+socket(server);
 console.log('Roger running on port', port);

@@ -1,6 +1,8 @@
 var bodyParser  = require('body-parser')
 var _           = require('lodash');
 var fs          = require('fs');
+var express     = require('express');
+var path        = require('path');
 var uuid        = require('node-uuid');
 var growingFile = require('growing-file');
 var config      = require('./config');
@@ -11,7 +13,7 @@ var utils       = require('./utils');
 var github      = require('./github');
 var storage     = require('./storage');
 var router      = require('./router');
-var routes      = {}
+var routes      = {};
 
 /**
  * Builds all configured projects.
@@ -177,7 +179,8 @@ routes.bind = function(app) {
   app.get(router.generate('build-project'), routes.build);
   app.post(router.generate('build-project'), routes.build);
   app.post(router.generate('github-hooks'), routes.buildFromGithubHook);
-  
+
+  app.use('/', express.static(path.join(__dirname, 'client/dist')));
   app.use(notFoundMiddleware);
   app.use(obfuscateMiddleware);
   

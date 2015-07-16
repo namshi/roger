@@ -1,0 +1,35 @@
+{
+  "name": "roger-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "NODE_ENV=production webpack --progress --profile --colors",
+    "dev": "webpack-dev-server --host 0.0.0.0 --progress --profile --colors --hot"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "alt": "^0.16.10",
+    "axios": "^0.5.4",
+    "lodash": "^3.9.3",
+    "moment": "^2.10.3",
+    "react": "^0.13.3",
+    "react-router": "^0.13.3",
+    "socket.io-stream": "^0.8.0"
+  },
+  "devDependencies": {
+    "babel-core": "^5.5.8",
+    "babel-loader": "^5.1.4",
+    "css-loader": "^0.15.1",
+    "extract-text-webpack-plugin": "^0.8.2",
+    "file-loader": "^0.8.4",
+    "node-libs-browser": "^0.5.2",
+    "node-sass": "^3.2.0",
+    "react-hot-loader": "^1.2.7",
+    "sass-loader": "^1.0.2",
+    "style-loader": "^0.12.3",
+    "webpack": "^1.9.11",
+    "webpack-config-merger": "0.0.3",
+    "webpack-dev-server": "^1.9.0"
+  }
+}

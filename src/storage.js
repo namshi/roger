@@ -1,9 +1,10 @@
-var _       = require('lodash');
-var moment  = require('moment');
-var yaml    = require('js-yaml');
-var fs      = require('fs');
-var url     = require('url');
-var storage = {};
+var _          = require('lodash');
+var moment     = require('moment');
+var yaml       = require('js-yaml');
+var fs         = require('fs');
+var url        = require('url');
+var dispatcher = require('./dispatcher');
+var storage    = {};
 
 /**
  * Initializing the DB.
@@ -19,6 +20,7 @@ try {
  */
 storage.flush = function(){
   fs.writeFileSync('/db/data.yml', yaml.safeDump(data));
+  dispatcher.emit('storage-updated');
 }
 
 /**
