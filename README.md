@@ -1,4 +1,4 @@
-<img align="right" width="160px" src="https://openclipart.org/image/800px/svg_to_png/12949/Anonymous-man-face.png" />
+<img align="right" width="160px" src="https://openclipart.org/image/2400px/svg_to_png/212896/wonderfulbeardedbaldman.png" />
 
 # Roger
 
@@ -24,11 +24,11 @@ Ready to hack?
 ## Installation
 
 In your project (hopefully on a github repo),
-create a configuration file, `.build.yml`:
+create a configuration file, `build.yml`:
 
 ``` yaml
-redis:
-  registry:     127.0.0.1:5000
+redis: # this is the name of your project
+  registry: registry.company.com # your private registry, ie. 127.0.0.1:5000
 ```
 
 then create a `config.yml` file for roger:
@@ -42,7 +42,7 @@ auth:
   github: YOUR_GITHUB_TOKEN # General token to be used to authenticate to clone any project or comment on PRs (https://github.com/settings/tokens/new)
 ```
 
-so you can clone and run roger:
+Now you can clone and run roger:
 
 ```
 git clone git@github.com:namshi/roger.git
@@ -61,6 +61,11 @@ something like:
 2015-01-27T17:52:50.827Z - info: using config: {...}}
 Roger running on port 6600
 ```
+
+and you can open the web interface up
+on your [localhost](http://localhost:6600):
+
+![frontend](https://raw.githubusercontent.com/namshi/roger/master/bin/images/frontend.png?token=AAUC5NV50avpU2vaAQE_O5XuPqSADkcFks5VtkkYwA%3D%3D)
 
 ## Project configuration
 
@@ -89,19 +94,17 @@ redis:
   revfile:        somedir # means roger will create a rev.txt file with informations about the build at this path
   after-build: # hooks to execute after an image is built, before pushing it to the registry, ie. tests
     - ls -la
-    - sleep 1
+    - npm test
   notify:
     - github
     - email-ses
   publish:
-    - 
+    -
       to: s3
       copy: /src/build/public/ # this is the path inside the container
       bucket: my-bucket # name of the s3 bucket
       bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
       command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)
-      key: AWS_S3_KEY # guess what
-      secret: AWS_S3_SECRET # guess what again
 ```
 
 Want to build 2 projects from the same repo?
@@ -133,7 +136,7 @@ notifications: # configs to notify of build failures / successes
     access-key: 1234
     secret: 5678
     region: eu-west-1
-    to: 
+    to:
       - john.doe@gmail.com # a list of people who will be notified
       - committer # this is a special value that references the email of the commit author
     from: builds@company.com # sender email (needs to be verified on SES: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
@@ -151,7 +154,7 @@ Simply add a new webhook to your repo at
 `https://github.com/YOU/YOUR_PROJECT/settings/hooks/new`
 and configure it as follows:
 
-![github webhook](https://raw.githubusercontent.com/namshi/roger/spring-cleaning/bin/images/webhook.png?token=AAUC5PVL0sercYi9SEPGcesB7LRrSR7zks5Vnjb5wA%3D%3D)
+![github webhook](https://raw.githubusercontent.com/namshi/roger/master/bin/images/webhook.png?token=AAUC5Awo5iP4g0vNj2ZeA9BLBlGWPGSfks5VtkrvwA%3D%3D)
 
 Roger will build everytime you push to
 github, a new tag is created or you
@@ -171,14 +174,21 @@ project configuration:
 ``` yaml
 myproject:
   publish:
-    - 
+    -
       to: s3
       copy: /src/build/public/ # this is the path inside the container
       bucket: my-bucket # name of the s3 bucket
       bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
       command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)
-      key: AWS_S3_KEY # guess what
-      secret: AWS_S3_SECRET # guess what again
+```
+
+Then just store the s3 credentials in roger's `config.yml`:
+
+``` yaml
+publishers:
+  s3:
+    key: 1a2b3c4d5e6f
+    secret: 1a2b3c4d5e6f
 ```
 
 What happens is that we're gonna run a container
@@ -196,7 +206,7 @@ Once your build finishes, you can notify
 This notification lets you update the status of a PR
 by commenting on it.
 
-![comment on pull requests](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-github.png?token=AAUC5O20LTEbpPUwbL_Nwk4yQwUHR1HQks5U01WTwA%3D%3D)
+![comment on pull requests](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-github.png?token=AAUC5BM0AhBZ24WMf1jRr8aE0pZ2r8Bxks5VtkrtwA%3D%3D)
 
 If you have a PR from the branch `my-patch`
 open and roger is building that branch, it
@@ -215,26 +225,35 @@ via email, you can simply configure
 the `email-ses` handler that will
 send emails through [Amazon SES](http://aws.amazon.com/ses/).
 
-![ses notifications](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-ses.png?token=AAUC5L9Lk4x65t7ttfcE1htsbWOkfgnuks5U09A4wA%3D%3D)
+![ses notifications](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-ses.png?token=AAUC5HtpYwDEGGNkgRFnHg4S9cqniCZDks5VtkruwA%3D%3D)
 
-```
+``` yaml
 my-project:
   branch:       master
   from:         https://github.com/me/awesome-project
   notify:
     - email-ses
-  notifications:
-    email-ses:
-      access-key: 123456
-      secret:     1a2b3c4d5e6f
-      region:     eu-west-1
-      to: 
-        - dude-who-has-been-working-on-this-specific-project@example.org
-      from: roger@example.org
 ```
 
-The `from` address needs to be
-[verified on SES](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html).
+and then in roger's `config.yml`:
+
+``` yaml
+notifications:
+  email-ses:
+    access-key: 1a2b3c4d5e6f
+    secret: 1a2b3c4d5e6f
+    region: eu-west-1
+    to:
+      - committer
+      - someone@yourcompany.com
+    from: admin@namshi.com
+```
+
+Note that:
+
+* the `from` address needs to be
+[verified on SES](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
+* `committer` is a special value that represents the committer's email
 
 ## Hooks
 
@@ -250,7 +269,7 @@ that specific image**; this means that if you
 want to run the tests of your applications you
 will most likely configure the project as follows:
 
-```
+``` yaml
 my-node-app:
   registry: hub.docker.io
   after-build:
@@ -355,7 +374,7 @@ If you don't specify a branch, `master`
 will be used.
 
 The same endpoint supports `POST` requests as well, `GET`
-should only really be used for debugging or so 
+should only really be used for debugging or so
 ([here's why](http://www.looah.com/source/view/2284)).
 
 ## Contributing
@@ -366,14 +385,26 @@ will have then a copy of roger and a private
 registry running on your machine so that you
 can easily hack on stuff.
 
+Just build and run the project through `docker-compose`:
+
+```
+docker-compose build
+docker-compose run server npm install
+docker-compose run server bash -c "cd src/client && npm install && npm run build"
+docker-compose up
+```
+
+and you will have the server and a simple docker registry
+running on your localhost.
+
 When you trigger a build, you should see something
 like:
 
 ```
-~  ᐅ docker ps                          
+~  ᐅ docker ps
 CONTAINER ID        IMAGE                 COMMAND                CREATED             STATUS              PORTS                              NAMES
-12e1d7e6d260        roger_server:latest   "nodemon /src/src/in   4 minutes ago       Up 4 minutes        3000/tcp, 0.0.0.0:5000->5000/tcp   roger_server_1      
-e3bf2bfa935e        registry:latest       "docker-registry"      4 minutes ago       Up 4 minutes        0.0.0.0:5001->5000/tcp             roger_registry_1    
+12e1d7e6d260        roger_server:latest   "nodemon /src/src/in   4 minutes ago       Up 4 minutes        3000/tcp, 0.0.0.0:5000->5000/tcp   roger_server_1
+e3bf2bfa935e        registry:latest       "docker-registry"      4 minutes ago       Up 4 minutes        0.0.0.0:5001->5000/tcp             roger_registry_1
 ~  ᐅ docker logs -f --tail=0 12e1d7e6d260
 2015-01-23T14:53:29.610Z - info: Scheduled a build of 127.0.0.1:5001/redis:master
 2015-01-23T14:53:29.610Z - info: Cloning https://github.com/dockerfile/redis:master in /tmp/roger-builds/sources/redis/1422024809
@@ -469,15 +500,7 @@ a must.
 
 ## TODO
 
-* docs
-  * how to setup a minimal server
 * client
-  * homepage with simple layout
-  * list of projects
-  * project view
-  * build a project
-  * view builds of a project
-  * view build of a project
   * wall (use query parameters to include / exclude projects)
 * build tracking
   * persist to SQLite
