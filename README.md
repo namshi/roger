@@ -380,12 +380,7 @@ should only really be used for debugging or so
 ## Contributing
 
 You can easily hack on roger by simply cloning
-this repository and then running `fig up`: you
-will have then a copy of roger and a private
-registry running on your machine so that you
-can easily hack on stuff.
-
-Just build and run the project through `docker-compose`:
+this repository and then running:
 
 ```
 docker-compose build
@@ -394,7 +389,7 @@ docker-compose run server bash -c "cd src/client && npm install && npm run build
 docker-compose up
 ```
 
-and you will have the server and a simple docker registry
+and you will have the roger server and a simple docker registry
 running on your localhost.
 
 When you trigger a build, you should see something
