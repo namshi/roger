@@ -21,14 +21,15 @@ var routes      = {};
 routes.build = function(req, res, next) {
   var repo = req.query.repo || req.body.repo
   var branch = req.query.branch || req.body.branch || "master"
-  
+  var options = req.query.options || req.body.options || {}
+
   if (!repo) {
     res.status(400).body = {message: "You must specify a 'repo' parameter"};
-    next();    
+    next();
   }
-  
-  docker.schedule(repo, branch, uuid.v4())
-  
+
+  docker.schedule(repo, branch, uuid.v4(), options)
+
   res.status(202).body = {message: "build scheduled"};
   next();
 }
@@ -55,13 +56,13 @@ routes.projects = function(req, res, next) {
  */
 routes.singleBuild = function(req, res, next) {
   var build = storage.getBuild(req.params.build);
-  
+
   if (build) {
     res.status(200).body = {build: build}
     next()
     return
   }
-  
+
   res.status(404);
   next();
 };
@@ -72,14 +73,14 @@ routes.singleBuild = function(req, res, next) {
  */
 routes.buildLog = function(req, res, next) {
   var logFile = '/tmp/roger-builds/' + req.params.build + '.log';
-  
+
   if (fs.existsSync(logFile)) {
     res.writeHead(200, {'Content-Type': 'text/plain'});
-  
+
     growingFile.open(logFile, {timeout: 60000, interval: 1000}).pipe(res);
     return;
   }
-  
+
   res.status(404);
   next();
 };
@@ -95,7 +96,7 @@ routes.config = function(req, res, next) {
 
 /**
  * Trigger a build from a github hook.
- * 
+ *
  * Github will hit this URL and we will
  * extract from the hook the information
  * needed to schedule a build.
@@ -103,7 +104,7 @@ routes.config = function(req, res, next) {
 routes.buildFromGithubHook = function(req, res) {
   github.getBuildInfoFromHook(req).then(function(info){
     docker.schedule(info.repo, info.branch || "master", uuid.v4())
-    
+
     res.status(202).send({message: "builds triggered", info: info});
     return;
   }).catch(function(err){
@@ -116,24 +117,24 @@ routes.buildFromGithubHook = function(req, res) {
  * Middleware that lets you specify
  * branches via colon in the URL
  * ie. redis:master.
- * 
+ *
  * If you don't want to specify a branch
  * simply omit it:
- * 
+ *
  * /api/projects/redis/build --> will build master
- * 
+ *
  * else use a colon:
- * 
+ *
  * /api/projects/redis:my-branch/build --> will build my-branch
  */
 function repoMiddleware(req, res, next, repo){
   var parts = repo.split(':');
-  
+
   if (parts.length === 2) {
     req.params.repo   = parts[0];
     req.params.branch = parts[1];
   }
-  
+
   next();
 };
 
@@ -157,9 +158,9 @@ function notFoundMiddleware(req, res, next){
     res.status(404).send({
       error: 'The page requested exists in your dreams',
       code: 404
-    }); 
+    });
   }
-  
+
   next();
 }
 
@@ -170,7 +171,7 @@ function notFoundMiddleware(req, res, next){
 routes.bind = function(app) {
   app.param('repo', repoMiddleware);
   app.use(bodyParser.json());
-  
+
   app.get(router.generate('config'), routes.config);
   app.get(router.generate('builds'), routes.builds);
   app.get(router.generate('projects'), routes.projects);
@@ -183,13 +184,13 @@ routes.bind = function(app) {
   app.use('/', express.static(path.join(__dirname, 'client/dist')));
   app.use(notFoundMiddleware);
   app.use(obfuscateMiddleware);
-  
+
   /**
    * This middleare is actually used
    * to send the response to the
    * client.
-   * 
-   * Since we want to perform some 
+   *
+   * Since we want to perform some
    * transformations to the response,
    * like obfuscating it, we cannot
    * call res.send(...) directly in

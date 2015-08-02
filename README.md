@@ -377,6 +377,10 @@ The same endpoint supports `POST` requests as well, `GET`
 should only really be used for debugging or so
 ([here's why](http://www.looah.com/source/view/2284)).
 
+You can also specify [docker options](https://docs.docker.com/reference/api/docker_remote_api_v1.17/#build-image-from-a-dockerfile) in your request,
+ie. if you want the build to run with the `--no-cache` flag
+just call `/api/build?repo=https://github.com/redis/redis&options[nocache]=true`.
+
 ## Contributing
 
 You can easily hack on roger by simply cloning

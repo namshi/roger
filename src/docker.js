@@ -32,7 +32,7 @@ function getBuildLogger(logFile) {
   return buildLogger;
 }
 
-docker.schedule = function(repo, gitBranch, uuid) {
+docker.schedule = function(repo, gitBranch, uuid, dockerOptions) {
   var path        = '/tmp/roger-builds/sources/' + uuid
   var branch      = gitBranch
   var builds      = [];
@@ -74,7 +74,7 @@ docker.schedule = function(repo, gitBranch, uuid) {
       project['github-token'] = githubToken
       project.registry        = project.registry || '127.0.0.1:5000'
 
-      builds.push(docker.build(project, uuid + '-' + project.name, path, gitBranch, branch));
+      builds.push(docker.build(project, uuid + '-' + project.name, path, gitBranch, branch, dockerOptions));
     })
 
     return builds;
@@ -83,7 +83,7 @@ docker.schedule = function(repo, gitBranch, uuid) {
   }).done()
 };
 
-docker.build = function(project, uuid, path, gitBranch, branch){
+docker.build = function(project, uuid, path, gitBranch, branch, dockerOptions){
   var buildLogger = getBuildLogger('/tmp/roger-builds/' + uuid  + '.log')
   var tarPath     = '/tmp/roger-builds/' + uuid  + '.tar'
   var imageId     = project.registry + '/' + project.name
@@ -108,7 +108,7 @@ docker.build = function(project, uuid, path, gitBranch, branch){
   }).then(function(){
     buildLogger.info('[%s] Created tarball for %s', buildId, uuid);
 
-    return docker.buildImage(project, tarPath, imageId + ':' + branch, buildId, buildLogger);
+    return docker.buildImage(project, tarPath, imageId + ':' + branch, buildId, buildLogger, dockerOptions);
   }).then(function(){
     buildLogger.info('[%s] %s built succesfully', buildId, uuid);
     buildLogger.info('[%s] Tagging %s', buildId, uuid);
@@ -183,10 +183,10 @@ docker.addRevFile = function(gitBranch, path, commit, project, buildLogger, opti
  *
  * @return promise
  */
-docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger) {
+docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, dockerOptions) {
   var deferred = Q.defer();
 
-  client.buildImage(tarPath, {t: imageId}, function (err, response){
+  client.buildImage(tarPath, _.extend({t: imageId}, dockerOptions), function (err, response){
     if (err) {
       deferred.reject(err);
     } else {
