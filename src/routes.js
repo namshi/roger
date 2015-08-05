@@ -13,6 +13,7 @@ var utils       = require('./utils');
 var github      = require('./github');
 var storage     = require('./storage');
 var router      = require('./router');
+var auth        = require('./auth');
 var routes      = {};
 
 /**
@@ -172,14 +173,14 @@ routes.bind = function(app) {
   app.param('repo', repoMiddleware);
   app.use(bodyParser.json());
 
-  app.get(router.generate('config'), routes.config);
-  app.get(router.generate('builds'), routes.builds);
-  app.get(router.generate('projects'), routes.projects);
-  app.get(router.generate('build'), routes.singleBuild);
-  app.get(router.generate('build-log'), routes.buildLog);
-  app.get(router.generate('build-project'), routes.build);
-  app.post(router.generate('build-project'), routes.build);
+  app.get(router.generate('config'), auth.authorize, routes.config);
+  app.get(router.generate('builds'), auth.authorize, routes.builds);
+  app.get(router.generate('projects'), auth.authorize, routes.projects);
+  app.get(router.generate('build'), auth.authorize, routes.singleBuild);
+  app.get(router.generate('build-log'), auth.authorize, routes.buildLog);
+  app.post(router.generate('build-project'), auth.authorize, routes.build);
   app.post(router.generate('github-hooks'), routes.buildFromGithubHook);
+  app.get(router.generate('build-project'), auth.authorize, routes.build);
 
   app.use('/', express.static(path.join(__dirname, 'client/dist')));
   app.use(notFoundMiddleware);

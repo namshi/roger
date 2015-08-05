@@ -5,6 +5,7 @@ var config  = require('./config');
 var routes  = require('./routes');
 var utils   = require('./utils');
 var socket  = require('./socket');
+var auth    = require('./auth');
 
 /**
  * Print the config while booting,
@@ -16,11 +17,16 @@ logger.info('using config:', JSON.stringify(utils.obfuscate(config.get())));
  * Register the routes.
  */
 var app = express();
+
+if (config.get('app.auth')) {
+  auth.enable(app)
+}
+
 routes.bind(app);
 
 /**
  * Start the fun!
- * 
+ *
  * #swag
  */
 var port = 6600;
