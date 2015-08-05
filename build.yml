@@ -1,5 +1,5 @@
 roger:
   notify:
   - github
-  - email-ses
+  - emailSes
   registry: namshi.net
