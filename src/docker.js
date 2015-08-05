@@ -18,7 +18,7 @@ var yaml            = require('js-yaml');
 var os              = require('os');
 var docker          = {};
 
-if fs.existsSync('/tmp/docker.sock') {
+if (fs.existsSync('/tmp/docker.sock')) {
   var client        = new Docker({socketPath: '/tmp/docker.sock'});
 } else {
   var ipv4   =  '';
