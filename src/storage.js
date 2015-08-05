@@ -19,6 +19,11 @@ try {
  * Flush changes to disk.
  */
 storage.flush = function(){
+  try {
+    fs.mkdirSync('/db');
+  } catch(err) {
+    if ( err.code != 'EEXIST' ) throw err;
+  }
   fs.writeFileSync('/db/data.yml', yaml.safeDump(data));
   dispatcher.emit('storage-updated');
 }
