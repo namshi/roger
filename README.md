@@ -97,7 +97,7 @@ redis:
     - npm test
   notify:
     - github
-    - email-ses
+    - emailSes
   publish:
     -
       to: s3
@@ -132,7 +132,7 @@ auth: # authentication on various providers
   github: YOUR_SECRET_TOKEN # General token to be used to authenticate to clone any project (https://github.com/settings/tokens/new)
 notifications: # configs to notify of build failures / successes
   github: '{{ auth.github }}' # config values can reference other values, this will post a comment on an open PR
-  email-ses: # sends an email through amazon SES
+  emailSes: # sends an email through amazon SES
     access-key: 1234
     secret: 5678
     region: eu-west-1
@@ -222,7 +222,7 @@ my-project:
 
 If you want to receive notifications
 via email, you can simply configure
-the `email-ses` handler that will
+the `emailSes` handler that will
 send emails through [Amazon SES](http://aws.amazon.com/ses/).
 
 ![ses notifications](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-ses.png?token=AAUC5HtpYwDEGGNkgRFnHg4S9cqniCZDks5VtkruwA%3D%3D)
@@ -232,14 +232,14 @@ my-project:
   branch:       master
   from:         https://github.com/me/awesome-project
   notify:
-    - email-ses
+    - emailSes
 ```
 
 and then in roger's `config.yml`:
 
 ``` yaml
 notifications:
-  email-ses:
+  emailSes:
     access-key: 1a2b3c4d5e6f
     secret: 1a2b3c4d5e6f
     region: eu-west-1
