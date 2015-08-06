@@ -25,7 +25,7 @@ Ready to hack?
 * [configuration](#configuration-reference)
   * [configuring a project](#project-configuration)
   * [configuring the server](#server-configuration)
-  * [configuring auth](#auth-configuration)
+  * [configuring auth](#configuring-auth)
 * [build hooks](#build-hooks)
   * [github](#github)
 * [notification](#notifications)
@@ -178,14 +178,16 @@ choice, based on [passport](http://passportjs.org/).
 
 Just define an auth provider in roger's config:
 
-```
+``` yaml
 app:
   auth:
     provider: '/auth/myProvider.js'
 ```
 
 At this point, mount your provider when launching
-the container with `[...] -v mycode/auth:/auth [...]`.
+the container with `-v mycode/auth:/auth`: Roger will
+dynamically load your own module and import it in
+the app.
 
 The `myProvider.js` module needs to expose a function
 that accepts an app and register its own auth mechanism:
