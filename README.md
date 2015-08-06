@@ -2,12 +2,12 @@
 
 # Roger
 
-> A build server for docker containers
+> A continuous integration and build server and for docker containers
 
 Roger is a simple yet powerful build
 server for docker containers: you will
 only need to specify your configuration
-and it will build your projects everytime
+and it will build your projects every time
 you schedule a build or, for example,
 open a pull request on github.
 
@@ -20,6 +20,28 @@ the Docker Hub or your own private
 registry out of the box.
 
 Ready to hack?
+
+* [installation](#installation)
+* [configuration](#configuration-reference)
+  * [configuring a project](#project-configuration)
+  * [configuring the server](#server-configuration)
+  * [configuring auth](#configuring-auth)
+* [build hooks](#build-hooks)
+  * [github](#github)
+* [notification](#notifications)
+  * [comments on Github pull requests](#pull-requests-on-github)
+  * [email (Amazon SES)](#email-through-amazon-ses)
+* [publishing](#publishing-artifacts)
+  * [s3](#s3)
+* [hooks](#hooks)
+  * [after-build](#after-build)
+* [APIs](#apis)
+  * [get all projects](#listing-all-projects)
+  * [get all builds](#listing-all-builds)
+  * [get a build](#getting-a-build)
+  * [start a build](#triggering-builds)
+* [contributing](#contributing)
+* [tests](#tests)
 
 ## Installation
 
@@ -67,7 +89,9 @@ on your [localhost](http://localhost:6600):
 
 ![frontend](https://raw.githubusercontent.com/namshi/roger/master/bin/images/frontend.png?token=AAUC5NV50avpU2vaAQE_O5XuPqSADkcFks5VtkkYwA%3D%3D)
 
-## Project configuration
+## Configuration reference
+
+### Project configuration
 
 In your repos, you can specify a few different
 configuration options, for example:
@@ -116,7 +140,7 @@ redis-server:
   dockerfilePath: server/src
 ```
 
-## Server configuration
+### Server configuration
 
 Roger will read a `/config.yml` file that you
 need to mount in the container:
@@ -124,6 +148,7 @@ need to mount in the container:
 ``` yaml
 app: # generic settings
   url: 'https://builds.yourcompany.com' # optional, just used for logging
+  auth: ~ # authentication turned off by default, see next paragraph
 auth: # authentication on various providers
   dockerhub: # these credentials are only useful if you need to push to the dockerhub
     username: odino # your username on the dockerhub
@@ -142,7 +167,35 @@ notifications: # configs to notify of build failures / successes
     from: builds@company.com # sender email (needs to be verified on SES: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
 ```
 
-## Build triggers
+### Configuring auth
+
+Roger comes with no authentication: all its
+routes are public and everyone with access to
+roger can trigger builds and see everything.
+
+Since everyone has different needs, we want to
+let you specify the auth mechanism of your
+choice, based on [passport](http://passportjs.org/).
+
+Just define an auth provider in roger's config:
+
+``` yaml
+app:
+  auth:
+    provider: '/auth/myProvider.js'
+```
+
+At this point, mount your provider when launching
+the container with `-v mycode/auth:/auth`: Roger will
+dynamically load your own module and import it in
+the app.
+
+The `myProvider.js` module needs to expose a function
+that accepts an app and register its own auth mechanism:
+it sounds more complicated than it is, so I'll just
+forward you to the [example provider](https://github.com/namshi/roger/blob/master/examples/auth/local.js).
+
+## Build hooks
 
 Roger exposes a simple HTTP interface
 and provides integration with some SCM
@@ -159,42 +212,6 @@ and configure it as follows:
 Roger will build everytime you push to
 github, a new tag is created or you
 comment on a PR with the text `build please!`.
-
-## Publishing artifacts
-
-Roger provides some ways to upload your build to
-some supported providers.
-
-### S3
-
-You can upload stuff from your container to an S3
-bucket by simply specifying the following in your
-project configuration:
-
-``` yaml
-myproject:
-  publish:
-    -
-      to: s3
-      copy: /src/build/public/ # this is the path inside the container
-      bucket: my-bucket # name of the s3 bucket
-      bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
-      command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)
-```
-
-Then just store the s3 credentials in roger's `config.yml`:
-
-``` yaml
-publishers:
-  s3:
-    key: 1a2b3c4d5e6f
-    secret: 1a2b3c4d5e6f
-```
-
-What happens is that we're gonna run a container
-with the image we just built, then copy a directory
-outside of the container (yes, to the host machine)
-and then upload that to S3.
 
 ## Notifications
 
@@ -254,6 +271,42 @@ Note that:
 * the `from` address needs to be
 [verified on SES](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
 * `committer` is a special value that represents the committer's email
+
+## Publishing artifacts
+
+Roger provides some ways to upload your build to
+some supported providers.
+
+### S3
+
+You can upload stuff from your container to an S3
+bucket by simply specifying the following in your
+project configuration:
+
+``` yaml
+myproject:
+  publish:
+    -
+      to: s3
+      copy: /src/build/public/ # this is the path inside the container
+      bucket: my-bucket # name of the s3 bucket
+      bucketPath: initial-path # the initial path, ie. s3://my-bucket/initial-path
+      command: gulp build # optional: a command to run right before publishing (you might wanna build stuff here)
+```
+
+Then just store the s3 credentials in roger's `config.yml`:
+
+``` yaml
+publishers:
+  s3:
+    key: 1a2b3c4d5e6f
+    secret: 1a2b3c4d5e6f
+```
+
+What happens is that we're gonna run a container
+with the image we just built, then copy a directory
+outside of the container (yes, to the host machine)
+and then upload that to S3.
 
 ## Hooks
 

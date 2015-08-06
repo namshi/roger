@@ -6,6 +6,7 @@ server:
    - .:/src
    - /var/run/docker.sock:/tmp/docker.sock
    - ./config.yml:/config.yml
+   - ./examples/auth:/auth
    - ./db:/db
   command: nodemon /src/src/index.js --config /config.yml
   environment:
