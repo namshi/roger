@@ -21,14 +21,7 @@ var docker          = {};
 if (fs.existsSync('/tmp/docker.sock')) {
   var client        = new Docker({socketPath: '/tmp/docker.sock'});
 } else {
-  var ipv4   =  '';
-  _.each(os.networkInterfaces()['eth0'], function(iface) {
-    if (iface.family == 'IPv4') {
-      ipv4 = iface.address.split('.').slice(0,3).join('.') + '.1';
-      return;
-    }
-  });
-  var client          = new Docker({host: ipv4, port: 2375});
+  var client          = new Docker({host: require('netroute').getGateway(), port: 2375});
 }
 
 /**
