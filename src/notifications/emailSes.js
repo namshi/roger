@@ -6,7 +6,7 @@ var _ = require('lodash');
  * through AWS SES.
  */
 module.exports = function(project, options, notificationOptions) {
-  aws.config.accessKeyId      = notificationOptions['access-key'];
+  aws.config.accessKeyId      = notificationOptions['accessKey'];
   aws.config.secretAccessKey  = notificationOptions.secret;
   aws.config.region           = notificationOptions.region;
   var ses                     = new aws.SES({apiVersion: '2010-12-01'});

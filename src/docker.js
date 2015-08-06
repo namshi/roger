@@ -15,8 +15,14 @@ var hooks           = require('./hooks');
 var publisher       = require('./publisher');
 var dispatcher      = require('./dispatcher');
 var yaml            = require('js-yaml');
-var client          = new Docker({socketPath: '/tmp/docker.sock'});
+var os              = require('os');
 var docker          = {};
+
+if (fs.existsSync('/tmp/docker.sock')) {
+  var client        = new Docker({socketPath: '/tmp/docker.sock'});
+} else {
+  var client          = new Docker({host: require('netroute').getGateway(), port: 2375});
+}
 
 /**
  * Returns a logger for a build,

@@ -36,6 +36,7 @@
     "js-yaml": "^3.2.5",
     "lodash": "^2.4.1",
     "moment": "^2.9.0",
+    "netroute": "^0.2.5",
     "node-dir": "^0.1.6",
     "node-uuid": "^1.4.2",
     "nodegit": "0.4.1",
