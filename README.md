@@ -2,7 +2,7 @@
 
 # Roger
 
-> A build server for docker containers
+> A continuous integration and build server and for docker containers
 
 Roger is a simple yet powerful build
 server for docker containers: you will
