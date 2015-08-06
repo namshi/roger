@@ -148,6 +148,7 @@ need to mount in the container:
 ``` yaml
 app: # generic settings
   url: 'https://builds.yourcompany.com' # optional, just used for logging
+  auth: ~ # authentication turned off by default, see next paragraph
 auth: # authentication on various providers
   dockerhub: # these credentials are only useful if you need to push to the dockerhub
     username: odino # your username on the dockerhub
