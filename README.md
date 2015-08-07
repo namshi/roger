@@ -19,6 +19,8 @@ private repositories and push them to
 the Docker Hub or your own private
 registry out of the box.
 
+![frontend](https://raw.githubusercontent.com/namshi/roger/master/bin/images/frontend.png?token=AAUC5NV50avpU2vaAQE_O5XuPqSADkcFks5VtkkYwA%3D%3D)
+
 Ready to hack?
 
 * [installation](#installation)
@@ -45,15 +47,7 @@ Ready to hack?
 
 ## Installation
 
-In your project (hopefully on a github repo),
-create a configuration file, `build.yml`:
-
-``` yaml
-redis: # this is the name of your project
-  registry: registry.company.com # your private registry, ie. 127.0.0.1:5000
-```
-
-then create a `config.yml` file for roger:
+Create a `config.yml` file for roger:
 
 ``` yaml
 auth:
@@ -64,7 +58,7 @@ auth:
   github: YOUR_GITHUB_TOKEN # General token to be used to authenticate to clone any project or comment on PRs (https://github.com/settings/tokens/new)
 ```
 
-Now you can clone and run roger:
+Now clone and run it:
 
 ```
 git clone git@github.com:namshi/roger.git
@@ -85,9 +79,34 @@ Roger running on port 6600
 ```
 
 and you can open the web interface up
-on your [localhost](http://localhost:6600):
+on your [localhost](http://localhost:6600).
 
-![frontend](https://raw.githubusercontent.com/namshi/roger/master/bin/images/frontend.png?token=AAUC5NV50avpU2vaAQE_O5XuPqSADkcFks5VtkkYwA%3D%3D)
+Now, time for our first build: pick a project of yours,
+on github, and add a `build.yml` file in the root of the
+repo:
+
+``` yaml
+redis: # this is the name of your project
+  registry: registry.company.com # your private registry, ie. 127.0.0.1:5000
+```
+
+then visit `http://localhost:6600/api/build?repo=URL_OF_YOUR_REPO`
+(ie. `localhost:6600/api/build?repo=https://github.com/namshi/test-build`)
+and you should receive a confirmation that the build has been
+scheduled:
+
+![build-sched](https://raw.githubusercontent.com/namshi/roger/master/bin/images/build-scheduled.png?token=AAUC5ALmRhBQ1sd1lw5SYslNcPBrKz4Pks5Vze4TwA%3D%3D)
+
+Now open the web interface, your docker build is running!
+
+![build-frontend](https://raw.githubusercontent.com/namshi/roger/master/bin/images/build-frontend.png?token=AAUC5O2xXQQeQlLFEn3k-AXqpr6eE_F8ks5Vze4AwA%3D%3D)
+
+> Protip: if you do a docker-compose up in the root
+> of roger, the dev environment for roger (including)
+> a local registry, starts on hiw own: you might want to
+> use this if you are playing with Roger for the first
+> time and you don't have a registry available at
+> registry.company.com
 
 ## Configuration reference
 
