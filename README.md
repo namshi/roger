@@ -42,6 +42,8 @@ Ready to hack?
   * [get all builds](#listing-all-builds)
   * [get a build](#getting-a-build)
   * [start a build](#triggering-builds)
+* [roger in production](#in-production)
+* [why roger?](#why-did-you-build-this)
 * [contributing](#contributing)
 * [tests](#tests)
 
@@ -102,8 +104,8 @@ Now open the web interface, your docker build is running!
 ![build-frontend](https://raw.githubusercontent.com/namshi/roger/master/bin/images/build-frontend.png?token=AAUC5O2xXQQeQlLFEn3k-AXqpr6eE_F8ks5Vze4AwA%3D%3D)
 
 > Protip: if you do a docker-compose up in the root
-> of roger, the dev environment for roger (including)
-> a local registry, starts on hiw own: you might want to
+> of roger, the dev environment for roger, including
+> a local registry, starts on its own: you might want to
 > use this if you are playing with Roger for the first
 > time and you don't have a registry available at
 > registry.company.com
@@ -127,7 +129,7 @@ redis: # if you don't specify the registry, we'll assume you want to push to a l
   registry:     dockerhub
 ```
 
-Want to publish assets to S3? Here's a full overview of what roger
+Want to publish assets to S3? Run tests? Here's a full overview of what roger
 can do with your project:
 
 ``` yaml
@@ -177,7 +179,7 @@ auth: # authentication on various providers
 notifications: # configs to notify of build failures / successes
   github: '{{ auth.github }}' # config values can reference other values, this will post a comment on an open PR
   emailSes: # sends an email through amazon SES
-    access-key: 1234
+    accessKey: 1234
     secret: 5678
     region: eu-west-1
     to:
@@ -276,7 +278,7 @@ and then in roger's `config.yml`:
 ``` yaml
 notifications:
   emailSes:
-    access-key: 1a2b3c4d5e6f
+    accessKey: 1a2b3c4d5e6f
     secret: 1a2b3c4d5e6f
     region: eu-west-1
     to:
@@ -343,7 +345,7 @@ will most likely configure the project as follows:
 
 ``` yaml
 my-node-app:
-  registry: hub.docker.io
+  registry: registry.company.com
   after-build:
     - npm test
 ```
@@ -452,6 +454,43 @@ should only really be used for debugging or so
 You can also specify [docker options](https://docs.docker.com/reference/api/docker_remote_api_v1.17/#build-image-from-a-dockerfile) in your request,
 ie. if you want the build to run with the `--no-cache` flag
 just call `/api/build?repo=https://github.com/redis/redis&options[nocache]=true`.
+
+## In production
+
+Every container (even Roger itself) at [Namshi](https://github.com/namshi)
+gets built through Roger: we have been running it, behind our own firewall,
+for the past 6 months or so and had no issues with it; whenever our engineers
+push to github Roger builds the project and pushes it to our private registry,
+often in a matter of seconds.
+
+## Why did you build this?
+
+Good question, especially since we hate to re-invent the wheel!
+
+Roger was built since, at the very beginning of our experience
+with Docker, there were no decent SaaS that could run Docker
+builds in a matter of seconds: we first tried the DockerHub
+and it could even take up to 15 minutes to get a build done, which was
+frustrating. We wanted new images to be available in seconds.
+At the same time, neither Travis-CI, CodeShip nor Drone.io
+seemed to have a tight and nice integration with Docker
+(though some of them have made giant steps over the past few
+months so...who knows what we're gonna be using in a year!).
+
+Thus, one day, we decided to try [dockerode](https://github.com/apocas/dockerode)
+out and see if we could hack a Docker builder in a couple
+evenings. The idea of running Roger in its own container,
+sharing the docker socket, comes from the
+[nginx proxy container](https://github.com/jwilder/nginx-proxy#usage).
+
+At the beginning, Roger only ran via its APIs: once we
+started flirting with the idea of making it public,
+we decided to take some time off and build a small
+frontend with ReactJS, as an experiment -- part of the
+[perks of working at Namshi](http://tech.namshi.com/join-us/) ;-)
+
+Roger has been running without problems for a few months,
+and we're pretty happy with it.
 
 ## Contributing
 
