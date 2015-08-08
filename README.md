@@ -19,7 +19,7 @@ private repositories and push them to
 the Docker Hub or your own private
 registry out of the box.
 
-![frontend](https://raw.githubusercontent.com/namshi/roger/master/bin/images/frontend.png?token=AAUC5NV50avpU2vaAQE_O5XuPqSADkcFks5VtkkYwA%3D%3D)
+![frontend](https://raw.githubusercontent.com/namshi/roger/master/bin/images/frontend.png)
 
 Ready to hack?
 
@@ -102,11 +102,11 @@ then visit `http://localhost:6600/api/build?repo=URL_OF_YOUR_REPO`
 and you should receive a confirmation that the build has been
 scheduled:
 
-![build-sched](https://raw.githubusercontent.com/namshi/roger/master/bin/images/build-scheduled.png?token=AAUC5ALmRhBQ1sd1lw5SYslNcPBrKz4Pks5Vze4TwA%3D%3D)
+![build-sched](https://raw.githubusercontent.com/namshi/roger/master/bin/images/build-scheduled.png)
 
 Now open the web interface, your docker build is running!
 
-![build-frontend](https://raw.githubusercontent.com/namshi/roger/master/bin/images/build-frontend.png?token=AAUC5O2xXQQeQlLFEn3k-AXqpr6eE_F8ks5Vze4AwA%3D%3D)
+![build-frontend](https://raw.githubusercontent.com/namshi/roger/master/bin/images/build-frontend.png)
 
 > Protip: if you do a docker-compose up in the root
 > of roger, the dev environment for roger, including
@@ -233,7 +233,7 @@ Simply add a new webhook to your repo at
 `https://github.com/YOU/YOUR_PROJECT/settings/hooks/new`
 and configure it as follows:
 
-![github webhook](https://raw.githubusercontent.com/namshi/roger/master/bin/images/webhook.png?token=AAUC5Awo5iP4g0vNj2ZeA9BLBlGWPGSfks5VtkrvwA%3D%3D)
+![github webhook](https://raw.githubusercontent.com/namshi/roger/master/bin/images/webhook.png)
 
 Roger will build everytime you push to
 github, a new tag is created or you
@@ -249,7 +249,7 @@ Once your build finishes, you can notify
 This notification lets you update the status of a PR
 by commenting on it.
 
-![comment on pull requests](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-github.png?token=AAUC5BM0AhBZ24WMf1jRr8aE0pZ2r8Bxks5VtkrtwA%3D%3D)
+![comment on pull requests](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-github.png)
 
 If you have a PR from the branch `my-patch`
 open and roger is building that branch, it
@@ -268,7 +268,7 @@ via email, you can simply configure
 the `emailSes` handler that will
 send emails through [Amazon SES](http://aws.amazon.com/ses/).
 
-![ses notifications](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-ses.png?token=AAUC5HtpYwDEGGNkgRFnHg4S9cqniCZDks5VtkruwA%3D%3D)
+![ses notifications](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-ses.png)
 
 ``` yaml
 my-project:
