@@ -1,4 +1,4 @@
-<img align="right" width="160px" src="https://openclipart.org/image/2400px/svg_to_png/212896/wonderfulbeardedbaldman.png" />
+<img align="right" width="160px" src="https://raw.githubusercontent.com/namshi/roger/master/bin/images/logo.png" />
 
 # Roger
 
