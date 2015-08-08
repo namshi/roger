@@ -8,6 +8,7 @@ server:
    - ./config.yml:/config.yml
    - ./examples/auth:/auth
    - ./db:/db
+   - ./logs:/tmp/roger-builds/logs
   command: nodemon /src/src/index.js --config /config.yml
   environment:
     VIRTUAL_HOST: roger.swag

@@ -73,7 +73,7 @@ routes.singleBuild = function(req, res, next) {
  * by keeping an eye on its log file.
  */
 routes.buildLog = function(req, res, next) {
-  var logFile = '/tmp/roger-builds/' + req.params.build + '.log';
+  var logFile = path.join(utils.path('logs'), req.params.build + '.log');
 
   if (fs.existsSync(logFile)) {
     res.writeHead(200, {'Content-Type': 'text/plain'});

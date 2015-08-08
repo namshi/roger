@@ -14,6 +14,7 @@ var tar             = require('./tar');
 var hooks           = require('./hooks');
 var publisher       = require('./publisher');
 var dispatcher      = require('./dispatcher');
+var utils           = require('./utils');
 var yaml            = require('js-yaml');
 var os              = require('os');
 var docker          = {};
@@ -39,9 +40,9 @@ function getBuildLogger(logFile) {
 }
 
 docker.schedule = function(repo, gitBranch, uuid, dockerOptions) {
-  var path        = '/tmp/roger-builds/sources/' + uuid
+  var path        = p.join(utils.path('sources'), uuid)
   var branch      = gitBranch
-  var builds      = [];
+  var builds      = []
   var cloneUrl    = repo
 
   if (branch === 'master') {
@@ -90,8 +91,8 @@ docker.schedule = function(repo, gitBranch, uuid, dockerOptions) {
 };
 
 docker.build = function(project, uuid, path, gitBranch, branch, dockerOptions){
-  var buildLogger = getBuildLogger('/tmp/roger-builds/' + uuid  + '.log')
-  var tarPath     = '/tmp/roger-builds/' + uuid  + '.tar'
+  var buildLogger = getBuildLogger(p.join(utils.path('logs'), uuid + '.log'))
+  var tarPath     = p.join(utils.path('tars'), uuid + '.tar')
   var imageId     = project.registry + '/' + project.name
   var buildId     = imageId + ':' + branch
   var author      = 'unknown@unknown.com'
