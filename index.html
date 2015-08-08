@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Roger by namshi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Roger</h1>
+      <h2 class="project-tagline">A continuous integration and build server for Docker containers</h2>
+      <a href="https://github.com/namshi/roger" class="btn">View on GitHub</a>
+      <a href="https://github.com/namshi/roger/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/namshi/roger/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <p><img align="right" width="160px" src="https://raw.githubusercontent.com/namshi/roger/master/bin/images/logo.png"></p>
+
+<h1>
+<a id="roger" class="anchor" href="#roger" aria-hidden="true"><span class="octicon octicon-link"></span></a>Roger</h1>
+
+<blockquote>
+<p>A continuous integration and build server and for docker containers</p>
+</blockquote>
+
+<p>Roger is a simple yet powerful build
+server for docker containers: you will
+only need to specify your configuration
+and it will build your projects every time
+you schedule a build or, for example,
+open a pull request on github.</p>
+
+<p>It is easy to deploy and comes with
+built-in integration with platforms
+like Github or the Docker Registry,
+which means that you can build your
+private repositories and push them to
+the Docker Hub or your own private
+registry out of the box.</p>
+
+<p><img src="https://raw.githubusercontent.com/namshi/roger/master/bin/images/frontend.png" alt="frontend"></p>
+
+<p>Ready to hack?</p>
+
+<ul>
+<li><a href="#installation">installation</a></li>
+<li>
+<a href="#configuration-reference">configuration</a>
+
+<ul>
+<li><a href="#project-configuration">configuring a project</a></li>
+<li><a href="#server-configuration">configuring the server</a></li>
+<li><a href="#configuring-auth">configuring auth</a></li>
+</ul>
+</li>
+<li>
+<a href="#build-hooks">build hooks</a>
+
+<ul>
+<li><a href="#github">github</a></li>
+</ul>
+</li>
+<li>
+<a href="#notifications">notification</a>
+
+<ul>
+<li><a href="#pull-requests-on-github">comments on Github pull requests</a></li>
+<li><a href="#email-through-amazon-ses">email (Amazon SES)</a></li>
+</ul>
+</li>
+<li>
+<a href="#publishing-artifacts">publishing</a>
+
+<ul>
+<li><a href="#s3">s3</a></li>
+</ul>
+</li>
+<li>
+<a href="#hooks">hooks</a>
+
+<ul>
+<li><a href="#after-build">after-build</a></li>
+</ul>
+</li>
+<li>
+<a href="#apis">APIs</a>
+
+<ul>
+<li><a href="#listing-all-projects">get all projects</a></li>
+<li><a href="#listing-all-builds">get all builds</a></li>
+<li><a href="#getting-a-build">get a build</a></li>
+<li><a href="#triggering-builds">start a build</a></li>
+</ul>
+</li>
+<li><a href="#in-production">roger in production</a></li>
+<li><a href="#why-did-you-build-this">why roger?</a></li>
+<li><a href="#contributing">contributing</a></li>
+<li><a href="#tests">tests</a></li>
+</ul>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>Create a <code>config.yml</code> file for roger:</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">auth:</span></span>
+  <span class="pl-s"><span class="pl-ent">dockerhub:</span> </span><span class="pl-c"># these credentials are only useful if you need to push to the dockerhub</span>
+    <span class="pl-s"><span class="pl-ent">username:</span> <span class="pl-s">user </span></span><span class="pl-c"># your username on the dockerhub</span>
+    <span class="pl-s"><span class="pl-ent">email:</span>    <span class="pl-s">someone@gmail.com </span></span><span class="pl-c"># your...well, you get it</span>
+    <span class="pl-s"><span class="pl-ent">password:</span> <span class="pl-s">YOUR_DOCKERHUB_PASSWORD --&gt; see https://github.com/namshi/roger#sensitive-data</span></span>
+  <span class="pl-s"><span class="pl-ent">github:</span> <span class="pl-s">YOUR_GITHUB_TOKEN </span></span><span class="pl-c"># General token to be used to authenticate to clone any project or comment on PRs (https://github.com/settings/tokens/new)</span></pre></div>
+
+<p>Now clone and run it:</p>
+
+<pre><code>git clone git@github.com:namshi/roger.git
+
+cd roger
+
+docker build -t namshi/roger .
+
+docker run -ti -p 6600:6600 \
+-v /tmp/logs:/tmp/roger-builds/logs \
+-v $(pwd)/db:/db \
+-v /path/to/your/config.yml:/config.yml \
+-v /var/run/docker.sock:/tmp/docker.sock \
+namshi/roger
+</code></pre>
+
+<p>If roger starts correctly, you should see
+something like:</p>
+
+<pre><code>2015-01-27T17:52:50.827Z - info: using config: {...}}
+Roger running on port 6600
+</code></pre>
+
+<p>and you can open the web interface up
+on your <a href="http://localhost:6600">localhost</a>.</p>
+
+<p>Now, time for our first build: pick a project of yours,
+on github, and add a <code>build.yml</code> file in the root of the
+repo:</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">redis:</span> </span><span class="pl-c"># this is the name of your project</span>
+  <span class="pl-s"><span class="pl-ent">registry:</span> <span class="pl-s">registry.company.com </span></span><span class="pl-c"># your private registry, ie. 127.0.0.1:5000</span></pre></div>
+
+<p>then visit <code>http://localhost:6600/api/build?repo=URL_OF_YOUR_REPO</code>
+(ie. <code>localhost:6600/api/build?repo=https://github.com/namshi/test-build</code>)
+and you should receive a confirmation that the build has been
+scheduled:</p>
+
+<p><img src="https://raw.githubusercontent.com/namshi/roger/master/bin/images/build-scheduled.png" alt="build-sched"></p>
+
+<p>Now open the web interface, your docker build is running!</p>
+
+<p><img src="https://raw.githubusercontent.com/namshi/roger/master/bin/images/build-frontend.png" alt="build-frontend"></p>
+
+<blockquote>
+<p>Protip: if you do a docker-compose up in the root
+of roger, the dev environment for roger, including
+a local registry, starts on its own: you might want to
+use this if you are playing with Roger for the first
+time and you don't have a registry available at
+registry.company.com</p>
+</blockquote>
+
+<h2>
+<a id="configuration-reference" class="anchor" href="#configuration-reference" aria-hidden="true"><span class="octicon octicon-link"></span></a>Configuration reference</h2>
+
+<h3>
+<a id="project-configuration" class="anchor" href="#project-configuration" aria-hidden="true"><span class="octicon octicon-link"></span></a>Project configuration</h3>
+
+<p>In your repos, you can specify a few different
+configuration options, for example:</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">redis:</span> </span><span class="pl-c"># name of the project, will be the name of the image as well</span>
+  <span class="pl-s"><span class="pl-ent">registry:</span>   <span class="pl-s">127.0.0.1:5001 </span></span><span class="pl-c"># url of the registry to which we're gonna push</span></pre></div>
+
+<p>Want to push to the dockerhub?</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">redis:</span> </span><span class="pl-c"># if you don't specify the registry, we'll assume you want to push to a local registry at 127.0.0.1:5000</span>
+  <span class="pl-s"><span class="pl-ent">registry:</span>     <span class="pl-s">dockerhub</span></span></pre></div>
+
+<p>Want to publish assets to S3? Run tests? Here's a full overview of what roger
+can do with your project:</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">redis:</span></span>
+  <span class="pl-s"><span class="pl-ent">dockerfilePath:</span> <span class="pl-s">some/subdir </span></span><span class="pl-c"># location of the dockerfile, omit this if it's in the root of the repo</span>
+  <span class="pl-s"><span class="pl-ent">registry:</span>       <span class="pl-s">127.0.0.1:5001</span></span>
+  <span class="pl-s"><span class="pl-ent">revfile:</span>        <span class="pl-s">somedir </span></span><span class="pl-c"># means roger will create a rev.txt file with informations about the build at this path</span>
+  <span class="pl-s"><span class="pl-ent">after-build:</span> </span><span class="pl-c"># hooks to execute after an image is built, before pushing it to the registry, ie. tests</span>
+    <span class="pl-s">- <span class="pl-s">ls -la</span></span>
+    <span class="pl-s">- <span class="pl-s">npm test</span></span>
+  <span class="pl-s"><span class="pl-ent">notify:</span></span>
+    <span class="pl-s">- <span class="pl-s">github</span></span>
+    <span class="pl-s">- <span class="pl-s">emailSes</span></span>
+  <span class="pl-s"><span class="pl-ent">publish:</span></span>
+    <span class="pl-s">-</span>
+      <span class="pl-s"><span class="pl-ent">to:</span> <span class="pl-s">s3</span></span>
+      <span class="pl-s"><span class="pl-ent">copy:</span> <span class="pl-s">/src/build/public/ </span></span><span class="pl-c"># this is the path inside the container</span>
+      <span class="pl-s"><span class="pl-ent">bucket:</span> <span class="pl-s">my-bucket </span></span><span class="pl-c"># name of the s3 bucket</span>
+      <span class="pl-s"><span class="pl-ent">bucketPath:</span> <span class="pl-s">initial-path </span></span><span class="pl-c"># the initial path, ie. s3://my-bucket/initial-path</span>
+      <span class="pl-s"><span class="pl-ent">command:</span> <span class="pl-s">gulp build </span></span><span class="pl-c"># optional: a command to run right before publishing (you might wanna build stuff here)</span></pre></div>
+
+<p>Want to build 2 projects from the same repo?</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">redis:</span></span>
+  <span class="pl-s"><span class="pl-ent">dockerfilePath:</span> <span class="pl-s">src</span></span>
+<span class="pl-s"><span class="pl-ent">redis-server:</span></span>
+  <span class="pl-s"><span class="pl-ent">dockerfilePath:</span> <span class="pl-s">server/src</span></span></pre></div>
+
+<h3>
+<a id="server-configuration" class="anchor" href="#server-configuration" aria-hidden="true"><span class="octicon octicon-link"></span></a>Server configuration</h3>
+
+<p>Roger will read a <code>/config.yml</code> file that you
+need to mount in the container:</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">app:</span> </span><span class="pl-c"># generic settings</span>
+  <span class="pl-s"><span class="pl-ent">url:</span> <span class="pl-s"><span class="pl-pds">'</span>https://builds.yourcompany.com<span class="pl-pds">'</span></span><span class="pl-s"> </span></span><span class="pl-c"># optional, just used for logging</span>
+  <span class="pl-s"><span class="pl-ent">auth:</span> <span class="pl-s">~ </span></span><span class="pl-c"># authentication turned off by default, see next paragraph</span>
+<span class="pl-s"><span class="pl-ent">auth:</span> </span><span class="pl-c"># authentication on various providers</span>
+  <span class="pl-s"><span class="pl-ent">dockerhub:</span> </span><span class="pl-c"># these credentials are only useful if you need to push to the dockerhub</span>
+    <span class="pl-s"><span class="pl-ent">username:</span> <span class="pl-s">odino </span></span><span class="pl-c"># your username on the dockerhub</span>
+    <span class="pl-s"><span class="pl-ent">email:</span>    <span class="pl-s">alessandro.nadalin@gmail.com </span></span><span class="pl-c"># your...well, you get it</span>
+    <span class="pl-s"><span class="pl-ent">password:</span> <span class="pl-s">YOUR_DOCKERHUB_PASSWORD --&gt; see https://github.com/namshi/roger#sensitive-data</span></span>
+  <span class="pl-s"><span class="pl-ent">github:</span> <span class="pl-s">YOUR_SECRET_TOKEN </span></span><span class="pl-c"># General token to be used to authenticate to clone any project (https://github.com/settings/tokens/new)</span>
+<span class="pl-s"><span class="pl-ent">notifications:</span> </span><span class="pl-c"># configs to notify of build failures / successes</span>
+  <span class="pl-s"><span class="pl-ent">github:</span> <span class="pl-s"><span class="pl-pds">'</span>{{ auth.github }}<span class="pl-pds">'</span></span><span class="pl-s"> </span></span><span class="pl-c"># config values can reference other values, this will post a comment on an open PR</span>
+  <span class="pl-s"><span class="pl-ent">emailSes:</span> </span><span class="pl-c"># sends an email through amazon SES</span>
+    <span class="pl-c1"><span class="pl-ent">accessKey:</span> 1234</span>
+    <span class="pl-c1"><span class="pl-ent">secret:</span> 5678</span>
+    <span class="pl-s"><span class="pl-ent">region:</span> <span class="pl-s">eu-west-1</span></span>
+    <span class="pl-s"><span class="pl-ent">to:</span></span>
+      <span class="pl-s">- <span class="pl-s">john.doe@gmail.com </span></span><span class="pl-c"># a list of people who will be notified</span>
+      <span class="pl-s">- <span class="pl-s">committer </span></span><span class="pl-c"># this is a special value that references the email of the commit author</span>
+    <span class="pl-s"><span class="pl-ent">from:</span> <span class="pl-s">builds@company.com </span></span><span class="pl-c"># sender email (needs to be verified on SES: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)</span></pre></div>
+
+<h3>
+<a id="configuring-auth" class="anchor" href="#configuring-auth" aria-hidden="true"><span class="octicon octicon-link"></span></a>Configuring auth</h3>
+
+<p>Roger comes with no authentication: all its
+routes are public and everyone with access to
+roger can trigger builds and see everything.</p>
+
+<p>Since everyone has different needs, we want to
+let you specify the auth mechanism of your
+choice, based on <a href="http://passportjs.org/">passport</a>.</p>
+
+<p>Just define an auth provider in roger's config:</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">app:</span></span>
+  <span class="pl-s"><span class="pl-ent">auth:</span></span>
+    <span class="pl-s"><span class="pl-ent">provider:</span> <span class="pl-s"><span class="pl-pds">'</span>/auth/myProvider.js<span class="pl-pds">'</span></span></span></pre></div>
+
+<p>At this point, mount your provider when launching
+the container with <code>-v mycode/auth:/auth</code>: Roger will
+dynamically load your own module and import it in
+the app.</p>
+
+<p>The <code>myProvider.js</code> module needs to expose a function
+that accepts an app and register its own auth mechanism:
+it sounds more complicated than it is, so I'll just
+forward you to the <a href="https://github.com/namshi/roger/blob/master/examples/auth/local.js">example provider</a>.</p>
+
+<h2>
+<a id="build-hooks" class="anchor" href="#build-hooks" aria-hidden="true"><span class="octicon octicon-link"></span></a>Build hooks</h2>
+
+<p>Roger exposes a simple HTTP interface
+and provides integration with some SCM
+provider, ie. GitHub.</p>
+
+<h3>
+<a id="github" class="anchor" href="#github" aria-hidden="true"><span class="octicon octicon-link"></span></a>Github</h3>
+
+<p>Simply add a new webhook to your repo at
+<code>https://github.com/YOU/YOUR_PROJECT/settings/hooks/new</code>
+and configure it as follows:</p>
+
+<p><img src="https://raw.githubusercontent.com/namshi/roger/master/bin/images/webhook.png" alt="github webhook"></p>
+
+<p>Roger will build everytime you push to
+github, a new tag is created or you
+comment on a PR with the text <code>build please!</code>.</p>
+
+<h2>
+<a id="notifications" class="anchor" href="#notifications" aria-hidden="true"><span class="octicon octicon-link"></span></a>Notifications</h2>
+
+<p>Once your build finishes, you can notify
+<em>someone</em> about its result (ie. success / failure).</p>
+
+<h3>
+<a id="pull-requests-on-github" class="anchor" href="#pull-requests-on-github" aria-hidden="true"><span class="octicon octicon-link"></span></a>Pull requests on Github</h3>
+
+<p>This notification lets you update the status of a PR
+by commenting on it.</p>
+
+<p><img src="https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-github.png" alt="comment on pull requests"></p>
+
+<p>If you have a PR from the branch <code>my-patch</code>
+open and roger is building that branch, it
+will then update the PR accordingly.</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">my-project:</span></span>
+  <span class="pl-s"><span class="pl-ent">notify:</span></span>
+    <span class="pl-s">- <span class="pl-s">github</span></span></pre></div>
+
+<h3>
+<a id="email-through-amazon-ses" class="anchor" href="#email-through-amazon-ses" aria-hidden="true"><span class="octicon octicon-link"></span></a>Email (through Amazon SES)</h3>
+
+<p>If you want to receive notifications
+via email, you can simply configure
+the <code>emailSes</code> handler that will
+send emails through <a href="http://aws.amazon.com/ses/">Amazon SES</a>.</p>
+
+<p><img src="https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-ses.png" alt="ses notifications"></p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">my-project:</span></span>
+  <span class="pl-s"><span class="pl-ent">branch:</span>       <span class="pl-s">master</span></span>
+  <span class="pl-s"><span class="pl-ent">from:</span>         <span class="pl-s">https://github.com/me/awesome-project</span></span>
+  <span class="pl-s"><span class="pl-ent">notify:</span></span>
+    <span class="pl-s">- <span class="pl-s">emailSes</span></span></pre></div>
+
+<p>and then in roger's <code>config.yml</code>:</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">notifications:</span></span>
+  <span class="pl-s"><span class="pl-ent">emailSes:</span></span>
+    <span class="pl-s"><span class="pl-ent">accessKey:</span> <span class="pl-s">1a2b3c4d5e6f</span></span>
+    <span class="pl-s"><span class="pl-ent">secret:</span> <span class="pl-s">1a2b3c4d5e6f</span></span>
+    <span class="pl-s"><span class="pl-ent">region:</span> <span class="pl-s">eu-west-1</span></span>
+    <span class="pl-s"><span class="pl-ent">to:</span></span>
+      <span class="pl-s">- <span class="pl-s">committer</span></span>
+      <span class="pl-s">- <span class="pl-s">someone@yourcompany.com</span></span>
+    <span class="pl-s"><span class="pl-ent">from:</span> <span class="pl-s">admin@namshi.com</span></span></pre></div>
+
+<p>Note that:</p>
+
+<ul>
+<li>the <code>from</code> address needs to be
+<a href="http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html">verified on SES</a>
+</li>
+<li>
+<code>committer</code> is a special value that represents the committer's email</li>
+</ul>
+
+<h2>
+<a id="publishing-artifacts" class="anchor" href="#publishing-artifacts" aria-hidden="true"><span class="octicon octicon-link"></span></a>Publishing artifacts</h2>
+
+<p>Roger provides some ways to upload your build to
+some supported providers.</p>
+
+<h3>
+<a id="s3" class="anchor" href="#s3" aria-hidden="true"><span class="octicon octicon-link"></span></a>S3</h3>
+
+<p>You can upload stuff from your container to an S3
+bucket by simply specifying the following in your
+project configuration:</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">myproject:</span></span>
+  <span class="pl-s"><span class="pl-ent">publish:</span></span>
+    <span class="pl-s">-</span>
+      <span class="pl-s"><span class="pl-ent">to:</span> <span class="pl-s">s3</span></span>
+      <span class="pl-s"><span class="pl-ent">copy:</span> <span class="pl-s">/src/build/public/ </span></span><span class="pl-c"># this is the path inside the container</span>
+      <span class="pl-s"><span class="pl-ent">bucket:</span> <span class="pl-s">my-bucket </span></span><span class="pl-c"># name of the s3 bucket</span>
+      <span class="pl-s"><span class="pl-ent">bucketPath:</span> <span class="pl-s">initial-path </span></span><span class="pl-c"># the initial path, ie. s3://my-bucket/initial-path</span>
+      <span class="pl-s"><span class="pl-ent">command:</span> <span class="pl-s">gulp build </span></span><span class="pl-c"># optional: a command to run right before publishing (you might wanna build stuff here)</span></pre></div>
+
+<p>Then just store the s3 credentials in roger's <code>config.yml</code>:</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">publishers:</span></span>
+  <span class="pl-s"><span class="pl-ent">s3:</span></span>
+    <span class="pl-s"><span class="pl-ent">key:</span> <span class="pl-s">1a2b3c4d5e6f</span></span>
+    <span class="pl-s"><span class="pl-ent">secret:</span> <span class="pl-s">1a2b3c4d5e6f</span></span></pre></div>
+
+<p>What happens is that we're gonna run a container
+with the image we just built, then copy a directory
+outside of the container (yes, to the host machine)
+and then upload that to S3.</p>
+
+<h2>
+<a id="hooks" class="anchor" href="#hooks" aria-hidden="true"><span class="octicon octicon-link"></span></a>Hooks</h2>
+
+<p>Roger has the concept of hooks, which are
+commands that you can run at certain steps
+of the build.</p>
+
+<h3>
+<a id="after-build" class="anchor" href="#after-build" aria-hidden="true"><span class="octicon octicon-link"></span></a>after-build</h3>
+
+<p>After an image is built, you can run as many
+hooks as you want <strong>in a container running
+that specific image</strong>; this means that if you
+want to run the tests of your applications you
+will most likely configure the project as follows:</p>
+
+<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">my-node-app:</span></span>
+  <span class="pl-s"><span class="pl-ent">registry:</span> <span class="pl-s">registry.company.com</span></span>
+  <span class="pl-s"><span class="pl-ent">after-build:</span></span>
+    <span class="pl-s">- <span class="pl-s">npm test</span></span></pre></div>
+
+<p>That is it! Now, after an image is built, before
+tagging it and sending it to the registry, roger
+will run <code>npm test</code> in your container and, if the
+tests fail, will stop the build.</p>
+
+<p>Neat, ah?</p>
+
+<h2>
+<a id="apis" class="anchor" href="#apis" aria-hidden="true"><span class="octicon octicon-link"></span></a>APIs</h2>
+
+<h3>
+<a id="listing-all-projects" class="anchor" href="#listing-all-projects" aria-hidden="true"><span class="octicon octicon-link"></span></a>Listing all projects</h3>
+
+<p><code>/api/projects</code> will return you the latest
+10 projects that were updated (added on roger,
+a build was triggered, etc).</p>
+
+<p>You can customize the number of projects you will
+get back by adding a <code>limit</code> parameter to the
+query string.</p>
+
+<div class="highlight highlight-json"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>projects<span class="pl-pds">"</span></span>: [
+        {
+            <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>https://github.com/company/redis__redis-server<span class="pl-pds">"</span></span>,
+            <span class="pl-s"><span class="pl-pds">"</span>alias<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>redis-server (company/redis)<span class="pl-pds">"</span></span>,
+            <span class="pl-s"><span class="pl-pds">"</span>latest_build<span class="pl-pds">"</span></span>: {
+                <span class="pl-s"><span class="pl-pds">"</span>branch<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>patch-1<span class="pl-pds">"</span></span>,
+                <span class="pl-s"><span class="pl-pds">"</span>project<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>https://github.com/company/redis__redis-server<span class="pl-pds">"</span></span>,
+                <span class="pl-s"><span class="pl-pds">"</span>status<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>passed<span class="pl-pds">"</span></span>,
+                <span class="pl-s"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>0715a3b5-43fe-4d07-9705-82641db07c25-redis-server<span class="pl-pds">"</span></span>,
+                <span class="pl-s"><span class="pl-pds">"</span>tag<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>registry.company.com/redis-server:patch-1<span class="pl-pds">"</span></span>,
+                <span class="pl-s"><span class="pl-pds">"</span>created_at<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>2015-07-02T08:44:28+00:00<span class="pl-pds">"</span></span>,
+                <span class="pl-s"><span class="pl-pds">"</span>updated_at<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>2015-07-02T08:45:09+00:00<span class="pl-pds">"</span></span>
+            }
+        },
+        <span class="pl-ii">...</span>
+    ]
+}</pre></div>
+
+<h3>
+<a id="listing-all-builds" class="anchor" href="#listing-all-builds" aria-hidden="true"><span class="octicon octicon-link"></span></a>Listing all builds</h3>
+
+<p><code>/api/builds</code> will return you the latest
+10 builds roger ran. You can customize the
+number of builds you will get back by adding
+a <code>limit</code> parameter to the query string.</p>
+
+<h3>
+<a id="getting-a-build" class="anchor" href="#getting-a-build" aria-hidden="true"><span class="octicon octicon-link"></span></a>Getting a build</h3>
+
+<p><code>/api/builds/BUILD_ID</code> will return you the
+details of a build:</p>
+
+<div class="highlight highlight-json"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>build<span class="pl-pds">"</span></span>: {
+        <span class="pl-s"><span class="pl-pds">"</span>branch<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>patch-1<span class="pl-pds">"</span></span>,
+        <span class="pl-s"><span class="pl-pds">"</span>project<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>https://github.com/company/redis__redis<span class="pl-pds">"</span></span>,
+        <span class="pl-s"><span class="pl-pds">"</span>status<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>passed<span class="pl-pds">"</span></span>,
+        <span class="pl-s"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>0715a3b5-43fe-4d07-9705-82641db07c25-redis<span class="pl-pds">"</span></span>,
+        <span class="pl-s"><span class="pl-pds">"</span>tag<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>registry.company.com/redis:patch-1<span class="pl-pds">"</span></span>,
+        <span class="pl-s"><span class="pl-pds">"</span>created_at<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>2015-07-02T08:44:28+00:00<span class="pl-pds">"</span></span>,
+        <span class="pl-s"><span class="pl-pds">"</span>updated_at<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>2015-07-02T08:45:09+00:00<span class="pl-pds">"</span></span>
+    }
+}</pre></div>
+
+<p>If you add <code>/log</code> at the end of the URL (ie. <code>/api/builds/1234/log</code>)
+you will be streamed the log output of that build:</p>
+
+<pre><code>2015-01-27T19:18:34.810Z - info: [127.0.0.1:5000/redis:patch-1] Scheduled a build of cb5ea16d-5266-4018-b571-954e75b825e0
+2015-01-27T19:18:34.810Z - info: Cloning https://github.com/namshi/redis:patch-1 in /tmp/roger-builds/sources/cb5ea16d-5266-4018-b571-954e75b825e0
+2015-01-27T19:18:34.816Z - info: git clone https://github.com/namshi/redis: Cloning into '/tmp/roger-builds/sources/cb5ea16d-5266-4018-b571-954e75b825e0'...
+
+2015-01-27T19:18:37.274Z - info: [127.0.0.1:5000/redis:patch-1] Created tarball for cb5ea16d-5266-4018-b571-954e75b825e0
+2015-01-27T19:18:37.365Z - info: Build of 127.0.0.1:5000/redis:patch-1 is in progress...
+2015-01-27T19:18:37.365Z - info: [127.0.0.1:5000/redis:patch-1] Step 0 : FROM dockerfile/redis
+
+2015-01-27T19:18:37.365Z - info: [127.0.0.1:5000/redis:patch-1]  ---&gt; c08280595650
+...
+...
+...
+</code></pre>
+
+<h3>
+<a id="triggering-builds" class="anchor" href="#triggering-builds" aria-hidden="true"><span class="octicon octicon-link"></span></a>Triggering builds</h3>
+
+<p>You can simply issue a GET request to the endpoint
+<code>/api/v2/build?repo=REPO_URL&amp;branch=BRANCH</code>.</p>
+
+<p>For example, both of these URLs are valid endpoints:</p>
+
+<ul>
+<li><code>/api/build?repo=https://github.com/redis/redis</code></li>
+<li><code>/api/build?repo=https://github.com/redis/redis&amp;branch=master</code></li>
+</ul>
+
+<p>If you don't specify a branch, <code>master</code>
+will be used.</p>
+
+<p>The same endpoint supports <code>POST</code> requests as well, <code>GET</code>
+should only really be used for debugging or so
+(<a href="http://www.looah.com/source/view/2284">here's why</a>).</p>
+
+<p>You can also specify <a href="https://docs.docker.com/reference/api/docker_remote_api_v1.17/#build-image-from-a-dockerfile">docker options</a> in your request,
+ie. if you want the build to run with the <code>--no-cache</code> flag
+just call <code>/api/build?repo=https://github.com/redis/redis&amp;options[nocache]=true</code>.</p>
+
+<h2>
+<a id="in-production" class="anchor" href="#in-production" aria-hidden="true"><span class="octicon octicon-link"></span></a>In production</h2>
+
+<p>Every container (even Roger itself) at <a href="https://github.com/namshi">Namshi</a>
+gets built through Roger: we have been running it, behind our own firewall,
+for the past 6 months or so and had no issues with it; whenever our engineers
+push to github Roger builds the project and pushes it to our private registry,
+often in a matter of seconds.</p>
+
+<h2>
+<a id="why-did-you-build-this" class="anchor" href="#why-did-you-build-this" aria-hidden="true"><span class="octicon octicon-link"></span></a>Why did you build this?</h2>
+
+<p>Good question, especially since we hate to re-invent the wheel!</p>
+
+<p>Roger was built since, at the very beginning of our experience
+with Docker, there were no decent SaaS that could run Docker
+builds in a matter of seconds: we first tried the DockerHub
+and it could even take up to 15 minutes to get a build done, which was
+frustrating. We wanted new images to be available in seconds.
+At the same time, neither Travis-CI, CodeShip nor Drone.io
+seemed to have a tight and nice integration with Docker
+(though some of them have made giant steps over the past few
+months so...who knows what we're gonna be using in a year!).</p>
+
+<p>Thus, one day, we decided to try <a href="https://github.com/apocas/dockerode">dockerode</a>
+out and see if we could hack a Docker builder in a couple
+evenings. The idea of running Roger in its own container,
+sharing the docker socket, comes from the
+<a href="https://github.com/jwilder/nginx-proxy#usage">nginx proxy container</a>.</p>
+
+<p>At the beginning, Roger only ran via its APIs: once we
+started flirting with the idea of making it public,
+we decided to take some time off and build a small
+frontend with ReactJS, as an experiment -- part of the
+<a href="http://tech.namshi.com/join-us/">perks of working at Namshi</a> ;-)</p>
+
+<p>Roger has been running without problems for a few months,
+and we're pretty happy with it.</p>
+
+<h2>
+<a id="contributing" class="anchor" href="#contributing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contributing</h2>
+
+<p>You can easily hack on roger by simply cloning
+this repository and then running:</p>
+
+<pre><code>docker-compose build
+docker-compose run server npm install
+docker-compose run server bash -c "cd src/client &amp;&amp; npm install &amp;&amp; npm run build"
+docker-compose up
+</code></pre>
+
+<p>and you will have the roger server and a simple docker registry
+running on your localhost.</p>
+
+<p>When you trigger a build, you should see something
+like:</p>
+
+<pre><code>~  ᐅ docker ps
+CONTAINER ID        IMAGE                 COMMAND                CREATED             STATUS              PORTS                              NAMES
+12e1d7e6d260        roger_server:latest   "nodemon /src/src/in   4 minutes ago       Up 4 minutes        3000/tcp, 0.0.0.0:5000-&gt;5000/tcp   roger_server_1
+e3bf2bfa935e        registry:latest       "docker-registry"      4 minutes ago       Up 4 minutes        0.0.0.0:5001-&gt;5000/tcp             roger_registry_1
+~  ᐅ docker logs -f --tail=0 12e1d7e6d260
+2015-01-23T14:53:29.610Z - info: Scheduled a build of 127.0.0.1:5001/redis:master
+2015-01-23T14:53:29.610Z - info: Cloning https://github.com/dockerfile/redis:master in /tmp/roger-builds/sources/redis/1422024809
+2015-01-23T14:53:32.807Z - info: Finished cloning https://github.com/dockerfile/redis:master
+2015-01-23T14:53:32.820Z - info: created tarball for 127.0.0.1:5001/redis:master
+2015-01-23T14:53:32.897Z - info: Build of 127.0.0.1:5001/redis:master is in progress...
+2015-01-23T14:53:32.897Z - info: [127.0.0.1:5001/redis:master] Step 0 : FROM dockerfile/ubuntu
+
+2015-01-23T14:53:32.897Z - info: [127.0.0.1:5001/redis:master]  ---&gt; 57d0bc345ba9
+
+2015-01-23T14:53:32.897Z - info: [127.0.0.1:5001/redis:master] Step 1 : RUN cd /tmp &amp;&amp;   wget http://download.redis.io/redis-stable.tar.gz &amp;&amp;   tar xvzf redis-stable.tar.gz &amp;&amp;   cd redis-stable &amp;&amp;   make &amp;&amp;   make install &amp;&amp;   cp -f src/redis-sentinel /usr/local/bin &amp;&amp;   mkdir -p /etc/redis &amp;&amp;   cp -f *.conf /etc/redis &amp;&amp;   rm -rf /tmp/redis-stable* &amp;&amp;   sed -i 's/^\(bind .*\)$/# \1/' /etc/redis/redis.conf &amp;&amp;   sed -i 's/^\(daemonize .*\)$/# \1/' /etc/redis/redis.conf &amp;&amp;   sed -i 's/^\(dir .*\)$/# \1\ndir \/data/' /etc/redis/redis.conf &amp;&amp;   sed -i 's/^\(logfile .*\)$/# \1/' /etc/redis/redis.conf
+
+2015-01-23T14:53:33.285Z - info: [127.0.0.1:5001/redis:master]  ---&gt; Using cache
+
+2015-01-23T14:53:33.286Z - info: [127.0.0.1:5001/redis:master]  ---&gt; 26bc665c9295
+
+2015-01-23T14:53:33.286Z - info: [127.0.0.1:5001/redis:master] Step 2 : VOLUME /data
+
+2015-01-23T14:53:33.645Z - info: [127.0.0.1:5001/redis:master]  ---&gt; Using cache
+
+2015-01-23T14:53:33.645Z - info: [127.0.0.1:5001/redis:master]  ---&gt; 6e4b36e3b7b6
+
+2015-01-23T14:53:33.645Z - info: [127.0.0.1:5001/redis:master] Step 3 : WORKDIR /data
+
+2015-01-23T14:53:34.007Z - info: [127.0.0.1:5001/redis:master]  ---&gt; Using cache
+
+2015-01-23T14:53:34.008Z - info: [127.0.0.1:5001/redis:master]  ---&gt; 9baac5d2adc3
+
+2015-01-23T14:53:34.008Z - info: [127.0.0.1:5001/redis:master] Step 4 : CMD redis-server /etc/redis/redis.conf
+
+2015-01-23T14:53:34.341Z - info: [127.0.0.1:5001/redis:master]  ---&gt; Using cache
+
+2015-01-23T14:53:34.341Z - info: [127.0.0.1:5001/redis:master]  ---&gt; 3910333848f1
+
+2015-01-23T14:53:34.341Z - info: [127.0.0.1:5001/redis:master] Step 5 : EXPOSE 6379
+
+2015-01-23T14:53:34.690Z - info: [127.0.0.1:5001/redis:master]  ---&gt; Using cache
+
+2015-01-23T14:53:34.691Z - info: [127.0.0.1:5001/redis:master]  ---&gt; 36c9365e8364
+
+2015-01-23T14:53:34.692Z - info: [127.0.0.1:5001/redis:master] Successfully built 36c9365e8364
+
+2015-01-23T14:53:34.693Z - info: Image 127.0.0.1:5001/redis:master built succesfully
+2015-01-23T14:53:34.714Z - info: Docker confirmed the build of 127.0.0.1:5001/redis:master, author , created on 2015-01-23T01:29:49.039114234Z on docker 1.4.1
+2015-01-23T14:53:34.714Z - info: Tagging 127.0.0.1:5001/redis:master
+2015-01-23T14:53:34.723Z - info: Pushing 127.0.0.1:5001/redis:master to 127.0.0.1:5001
+2015-01-23T14:53:36.852Z - info: [127.0.0.1:5001/redis:master] The push refers to a repository [127.0.0.1:5001/redis] (len: 1)
+2015-01-23T14:53:36.897Z - info: [127.0.0.1:5001/redis:master] Sending image list
+2015-01-23T14:53:37.037Z - info: [127.0.0.1:5001/redis:master] Pushing repository 127.0.0.1:5001/redis (1 tags)
+2015-01-23T14:53:37.067Z - info: [127.0.0.1:5001/redis:master] Image 511136ea3c5a already pushed, skipping
+2015-01-23T14:53:37.070Z - info: [127.0.0.1:5001/redis:master] Image 53f858aaaf03 already pushed, skipping
+2015-01-23T14:53:37.073Z - info: [127.0.0.1:5001/redis:master] Image 837339b91538 already pushed, skipping
+2015-01-23T14:53:37.078Z - info: [127.0.0.1:5001/redis:master] Image 615c102e2290 already pushed, skipping
+2015-01-23T14:53:37.080Z - info: [127.0.0.1:5001/redis:master] Image b39b81afc8ca already pushed, skipping
+2015-01-23T14:53:37.084Z - info: [127.0.0.1:5001/redis:master] Image 5aa9da73df5b already pushed, skipping
+2015-01-23T14:53:37.086Z - info: [127.0.0.1:5001/redis:master] Image ec4206da3b16 already pushed, skipping
+2015-01-23T14:53:37.089Z - info: [127.0.0.1:5001/redis:master] Image e00f3af60b33 already pushed, skipping
+2015-01-23T14:53:37.095Z - info: [127.0.0.1:5001/redis:master] Image e0a769f35586 already pushed, skipping
+2015-01-23T14:53:37.099Z - info: [127.0.0.1:5001/redis:master] Image f6060d642297 already pushed, skipping
+2015-01-23T14:53:37.104Z - info: [127.0.0.1:5001/redis:master] Image 17eef17d52cf already pushed, skipping
+2015-01-23T14:53:37.112Z - info: [127.0.0.1:5001/redis:master] Image 57d0bc345ba9 already pushed, skipping
+2015-01-23T14:53:37.118Z - info: [127.0.0.1:5001/redis:master] Image 26bc665c9295 already pushed, skipping
+2015-01-23T14:53:37.124Z - info: [127.0.0.1:5001/redis:master] Image 6e4b36e3b7b6 already pushed, skipping
+2015-01-23T14:53:37.131Z - info: [127.0.0.1:5001/redis:master] Image 9baac5d2adc3 already pushed, skipping
+2015-01-23T14:53:37.138Z - info: [127.0.0.1:5001/redis:master] Image 3910333848f1 already pushed, skipping
+2015-01-23T14:53:37.146Z - info: [127.0.0.1:5001/redis:master] Image 36c9365e8364 already pushed, skipping
+2015-01-23T14:53:37.146Z - info: [127.0.0.1:5001/redis:master] Pushing tag for rev [36c9365e8364] on {http://127.0.0.1:5001/v1/repositories/redis/tags/master}
+2015-01-23T14:53:37.202Z - info: Pushed image 127.0.0.1:5001/redis:master to the registry at http://127.0.0.1:5001
+2015-01-23T14:53:37.203Z - info: Finished build of 127.0.0.1:5001/redis:master in a few seconds #SWAG
+</code></pre>
+
+<p>Problems? <a href="https://github.com/namshi/roger/issues">Open an issue</a>! Suggestions? Feel free
+to <a href="https://github.com/namshi/roger/pulls">send a PR</a>!</p>
+
+<h2>
+<a id="tests" class="anchor" href="#tests" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tests</h2>
+
+<p>There are currently no automated tests and it's
+a shame :)</p>
+
+<p>As of now we didn't find a good way / method to
+run the whole server and check how it behaves in
+different scenarios in an automated way, as all
+tests are manually ran at the moment. Unit-testing
+the various scripts under <code>src</code> would be simple
+enough but the problem is that you should ensure
+that the whole server runs fine, doesn't crash,
+etc etc.</p>
+
+<p>If you have a suggestion or would like to create
+a spike feel <strong>uberfree</strong> to do so, as we believe
+that, to go further, automated tests are always
+a must.</p>
+
+<h2>
+<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span class="octicon octicon-link"></span></a>TODO</h2>
+
+<ul>
+<li>client
+
+<ul>
+<li>wall (use query parameters to include / exclude projects)</li>
+</ul>
+</li>
+<li>build tracking
+
+<ul>
+<li>persist to SQLite</li>
+<li>mount sqlite</li>
+</ul>
+</li>
+</ul>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/namshi/roger">Roger</a> is maintained by <a href="https://github.com/namshi">namshi</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
