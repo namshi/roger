@@ -9,3 +9,8 @@ routes:
   build-log:        '/api/builds/:build/log'
   build-link:       '/#/projects/:projectName/:build'
   github-hooks:     '/public/api/hooks/github'
+paths:
+  builds:   '/tmp/roger-builds/'
+  sources:  '{{ paths.builds }}/sources'
+  tars:     '{{ paths.builds }}/tars'
+  logs:     '{{ paths.builds }}/logs'

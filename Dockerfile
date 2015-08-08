@@ -11,6 +11,9 @@ RUN apt-get update && \
     find /var/log -type f | while read f; do echo -ne '' > $f; done;
 
 RUN mkdir /tmp/roger-builds
+RUN mkdir /tmp/roger-builds/logs
+RUN mkdir /tmp/roger-builds/tars
+RUN mkdir /tmp/roger-builds/sources
 
 COPY . /src
 

@@ -1,7 +1,9 @@
 'use strict';
 var fs          = require('fs');
+var path        = require('path');
 var growingFile = require('growing-file');
 var dispatcher  = require('./dispatcher');
+var utils       = require('./utils');
 
 module.exports = function (server) {
   var io = require('socket.io')(server);
@@ -12,7 +14,7 @@ module.exports = function (server) {
 
     /* For sending the build file*/
     ss(socket).on('get-build-log', function (stream, data) {
-      var logFile = '/tmp/roger-builds/' + data.buildId + '.log';
+      var logFile = path.join(utils.path('logs'), data.buildId + '.log');
       var growingStream = {};
 
       if (fs.existsSync(logFile)) {
