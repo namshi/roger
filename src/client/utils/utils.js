@@ -32,7 +32,8 @@ class Utils {
     let classNamesMap = {
       'passed': 'label-success',
       'failed': 'label-danger',
-      'started': 'label-warning'
+      'started': 'label-warning',
+      'queued': 'label-info',
     };
 
     return classNamesMap[status] || '';
