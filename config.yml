@@ -1,3 +1,7 @@
+# Example configuration, though head over to https://github.com/namshi/roger for more
+builds:
+  concurrent: 5 # max number of builds to run in parallel, use ~ to disable
+  retry-after: 30 # interval, in seconds, for Roger to check whether it can start queued builds
 auth:
   dockerhub: # these credentials are only useful if you need to push to the dockerhub
     username: odino # your username on the dockerhub

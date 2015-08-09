@@ -15,6 +15,7 @@ var hooks           = require('./hooks');
 var publisher       = require('./publisher');
 var dispatcher      = require('./dispatcher');
 var utils           = require('./utils');
+var builder         = require('./builder');
 var yaml            = require('js-yaml');
 var os              = require('os');
 var docker          = {};
@@ -97,6 +98,17 @@ docker.build = function(project, uuid, path, gitBranch, branch, dockerOptions){
   var buildId     = imageId + ':' + branch
   var author      = 'unknown@unknown.com'
   var now         = moment();
+
+  storage.saveBuild(uuid, buildId, project.id, branch, 'queued');
+
+  if (!builder.hasCapacity()) {
+    buildLogger.info("[%s] Too many builds running concurrently, queueing this one...", buildId)
+    builder.delay(function(){
+      docker.build(project, uuid, path, gitBranch, branch, dockerOptions)
+    });
+
+    return
+  }
 
   storage.saveBuild(uuid, buildId, project.id, branch, 'started');
 

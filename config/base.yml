@@ -1,5 +1,8 @@
 app:
   url: 'http://localhost:6600'
+builds:
+  concurrent: 5 # max number of builds to run in parallel
+  retry-after: 30 # interval, in seconds, for Roger to check whether it can start queued builds
 routes:
   config:           '/api/config'
   projects:         '/api/projects'
