@@ -13,7 +13,7 @@ server:
   environment:
     VIRTUAL_HOST: roger.swag
 registry:
-  image: registry
+  image: registry:2
   volumes:
    - ./registry:/tmp/registry
   ports:
