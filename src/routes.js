@@ -8,7 +8,7 @@ var growingFile = require('growing-file');
 var config      = require('./config');
 var storage     = require('./storage');
 var logger      = require('./logger');
-var docker      = require('./docker');
+var builder     = require('./builder');
 var utils       = require('./utils');
 var github      = require('./github');
 var storage     = require('./storage');
@@ -29,7 +29,7 @@ routes.build = function(req, res, next) {
     next();
   }
 
-  docker.schedule(repo, branch, uuid.v4(), options)
+  builder.schedule(repo, branch, uuid.v4(), options)
 
   res.status(202).body = {message: "build scheduled"};
   next();
@@ -39,16 +39,20 @@ routes.build = function(req, res, next) {
  * List all builds
  */
 routes.builds = function(req, res, next) {
-  res.status(200).body = {builds: storage.getBuilds(req.query.limit)};
-  next();
+  storage.getBuilds(req.query.limit).then(function(builds){
+    res.status(200).body = {builds: builds};
+    next();
+  })
 }
 
 /**
  * List all projects
  */
 routes.projects = function(req, res, next) {
-  res.status(200).body = {projects: storage.getProjects(req.query.limit)};
-  next();
+  storage.getProjects(req.query.limit).then(function(projects){
+    res.status(200).body = {projects: projects};
+    next();
+  })
 }
 
 
@@ -56,16 +60,13 @@ routes.projects = function(req, res, next) {
  * Single build's details
  */
 routes.singleBuild = function(req, res, next) {
-  var build = storage.getBuild(req.params.build);
-
-  if (build) {
+  storage.getBuild(req.params.build).then(function(build){
     res.status(200).body = {build: build}
     next()
-    return
-  }
-
-  res.status(404);
-  next();
+  }).catch(function(){
+    res.status(404);
+    next();
+  })
 };
 
 /**
@@ -104,7 +105,7 @@ routes.config = function(req, res, next) {
  */
 routes.buildFromGithubHook = function(req, res) {
   github.getBuildInfoFromHook(req).then(function(info){
-    docker.schedule(info.repo, info.branch || "master", uuid.v4())
+    builder.schedule(info.repo, info.branch || "master", uuid.v4())
 
     res.status(202).send({message: "builds triggered", info: info});
     return;

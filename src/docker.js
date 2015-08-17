@@ -1,200 +1,17 @@
 var _               = require('lodash');
-var moment          = require('moment');
-var p               = require('path');
 var Docker          = require('dockerode');
 var Q               = require('q');
-var url             = require('url');
 var fs              = require('fs');
-var git             = require('./git');
 var config          = require('./config');
-var storage         = require('./storage');
-var logger          = require('./logger');
-var notifications   = require('./notifications');
 var tar             = require('./tar');
-var hooks           = require('./hooks');
-var publisher       = require('./publisher');
-var dispatcher      = require('./dispatcher');
 var utils           = require('./utils');
-var builder         = require('./builder');
-var yaml            = require('js-yaml');
 var os              = require('os');
-var docker          = {};
+var docker          = {client: {}};
 
 if (fs.existsSync('/tmp/docker.sock')) {
-  var client        = new Docker({socketPath: '/tmp/docker.sock'});
+  docker.client = new Docker({socketPath: '/tmp/docker.sock'});
 } else {
-  var client          = new Docker({host: require('netroute').getGateway(), port: 2375});
-}
-
-/**
- * Returns a logger for a build,
- * which is gonna extend the base
- * logger by writing also on the
- * filesystem.
- */
-function getBuildLogger(logFile) {
-  var buildLogger = new logger.Logger;
-  buildLogger.add(logger.transports.File, { filename: logFile, json: false });
-  buildLogger.add(logger.transports.Console, {timestamp: true})
-
-  return buildLogger;
-}
-
-docker.schedule = function(repo, gitBranch, uuid, dockerOptions) {
-  var path        = p.join(utils.path('sources'), uuid)
-  var branch      = gitBranch
-  var builds      = []
-  var cloneUrl    = repo
-
-  if (branch === 'master') {
-    branch = 'latest'
-  }
-
-  var githubToken = config.get('auth.github')
-  if (githubToken) {
-    var uri                 = url.parse(repo);
-    uri.auth                = githubToken;
-    cloneUrl                = uri.format(uri);
-  }
-
-  git.clone(cloneUrl, path, gitBranch, logger).then(function(){
-    try {
-      return yaml.safeLoad(fs.readFileSync(p.join(path, 'build.yml'), 'utf8'));
-    } catch(err) {
-      /**
-       * In case the .build.yml is not found, let's build
-       * the smallest possible configuration for the current
-       * build: we will take the repo name and build this
-       * project, ie github.com/antirez/redis will build
-       * under the name "redis".
-       */
-      var buildConfig = {}
-      buildConfig[cloneUrl.split('/').pop()] = {}
-
-      return buildConfig
-    }
-  }).then(function(projects){
-    _.each(projects, function(project, name){
-      project.id              = repo + '__' + name
-      project.name            = name
-      project.repo            = repo
-      project.homepage        = repo
-      project['github-token'] = githubToken
-      project.registry        = project.registry || '127.0.0.1:5000'
-
-      builds.push(docker.build(project, uuid + '-' + project.name, path, gitBranch, branch, dockerOptions));
-    })
-
-    return builds;
-  }).catch(function(err){
-    logger.error(err.toString())
-  }).done()
-};
-
-docker.build = function(project, uuid, path, gitBranch, branch, dockerOptions){
-  var buildLogger = getBuildLogger(p.join(utils.path('logs'), uuid + '.log'))
-  var tarPath     = p.join(utils.path('tars'), uuid + '.tar')
-  var imageId     = project.registry + '/' + project.name
-  var buildId     = imageId + ':' + branch
-  var author      = 'unknown@unknown.com'
-  var now         = moment();
-
-  storage.saveBuild(uuid, buildId, project.id, branch, 'queued');
-
-  if (!builder.hasCapacity()) {
-    buildLogger.info("[%s] Too many builds running concurrently, queueing this one...", buildId)
-    builder.delay(function(){
-      docker.build(project, uuid, path, gitBranch, branch, dockerOptions)
-    });
-
-    return
-  }
-
-  storage.saveBuild(uuid, buildId, project.id, branch, 'started');
-
-  return git.getLastCommit(path, gitBranch).then(function(commit){
-    author = commit.author().email();
-
-    return docker.addRevFile(gitBranch, path, commit, project, buildLogger, {buildId: buildId});
-  }).then(function(){
-    var dockerfilePath = path;
-
-    if (project.dockerfilePath) {
-      dockerfilePath = p.join(path, project.dockerfilePath);
-    }
-
-    return tar.create(tarPath,  dockerfilePath + '/');
-  }).then(function(){
-    buildLogger.info('[%s] Created tarball for %s', buildId, uuid);
-
-    return docker.buildImage(project, tarPath, imageId + ':' + branch, buildId, buildLogger, dockerOptions);
-  }).then(function(){
-    buildLogger.info('[%s] %s built succesfully', buildId, uuid);
-    buildLogger.info('[%s] Tagging %s', buildId, uuid);
-
-    return docker.tag(imageId, buildId, branch, buildLogger);
-  }).then(function(image){
-    return publisher.publish(client, buildId, project, buildLogger).then(function(){
-      return image;
-    });
-  }).then(function(image){
-    buildLogger.info('[%s] Running after-build hooks for %s', buildId, uuid);
-
-    return hooks.run('after-build', buildId, project, client, buildLogger).then(function(){
-      return image;
-    });
-  }).then(function(image){
-    buildLogger.info('[%s] Ran after-build hooks for %s', buildId, uuid);
-    buildLogger.info('[%s] Pushing %s to %s', buildId, uuid, project.registry);
-
-    return docker.push(image, buildId, uuid, branch, project.registry, buildLogger);
-  }).then(function(){
-    storage.saveBuild(uuid, buildId, project.id, branch, 'passed');
-    buildLogger.info('[%s] Finished build %s in %s #SWAG', buildId, uuid, moment(now).fromNow(Boolean));
-
-    return true;
-  }).catch(function(err){
-    var message = err.message || err.error || err;
-
-    storage.saveBuild(uuid, buildId, project.id, branch, 'failed');
-    buildLogger.error('[%s] BUILD %s FAILED! ("%s") #YOLO', buildId, uuid, message);
-
-    return new Error(message);
-  }).then(function(result){
-    notifications.trigger(project, branch, {author: author, project: project, result: result, logger: buildLogger, uuid: uuid, buildId: buildId});
-  }).catch(function(err){
-    buildLogger.error('[%s] Error sending notifications for %s ("%s")', buildId, uuid, err.message || err.error);
-  });
-}
-
-/**
- * Adds a revfile at the build path
- * with information about the latest
- * commit.
- */
-docker.addRevFile = function(gitBranch, path, commit, project, buildLogger, options){
-  var parts = [path];
-
-  if (project.dockerfilePath) {
-    parts.push(project.dockerfilePath);
-  }
-
-  if (project.revfile) {
-    parts.push(project.revfile);
-  }
-
-  var revFilePath = p.join(parts.join('/'), 'rev.txt');
-
-  buildLogger.info('[%s] Going to create revfile in %s', options.buildId, revFilePath);
-  fs.appendFileSync(revFilePath, "Version: " + gitBranch);
-  fs.appendFileSync(revFilePath, "\nDate: " + commit.date());
-  fs.appendFileSync(revFilePath, "\nAuthor: " + commit.author());
-  fs.appendFileSync(revFilePath, "\nSha: " + commit.sha());
-  fs.appendFileSync(revFilePath, "\n");
-  fs.appendFileSync(revFilePath, "\nCommit message:");
-  fs.appendFileSync(revFilePath, "\n");
-  fs.appendFileSync(revFilePath, "\n  " + commit.message());
-  buildLogger.info('[%s] Created revfile in %s', options.buildId, revFilePath);
+  docker.client = new Docker({host: require('netroute').getGateway(), port: 2375});
 }
 
 /**
@@ -205,7 +22,7 @@ docker.addRevFile = function(gitBranch, path, commit, project, buildLogger, opti
 docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, dockerOptions) {
   var deferred = Q.defer();
 
-  client.buildImage(tarPath, _.extend({t: imageId}, dockerOptions), function (err, response){
+  docker.client.buildImage(tarPath, _.extend({t: imageId}, dockerOptions), function (err, response){
     if (err) {
       deferred.reject(err);
     } else {
@@ -243,7 +60,7 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, do
  */
 docker.tag = function(imageId, buildId, branch, buildLogger) {
   var deferred  = Q.defer();
-  var image     = client.getImage(imageId);
+  var image     = docker.client.getImage(imageId);
 
   image.tag({repo: imageId, tag: branch}, function(){
     deferred.resolve(image);
