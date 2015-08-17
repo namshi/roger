@@ -1,4 +1,4 @@
-FROM node:0.12-slim
+FROM node:0.12
 
 MAINTAINER Alessandro Nadalin "alessandro.nadalin@gmail.com"
 
