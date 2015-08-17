@@ -60,15 +60,9 @@ auth:
   github: YOUR_GITHUB_TOKEN # General token to be used to authenticate to clone any project or comment on PRs (https://github.com/settings/tokens/new)
 ```
 
-Now clone and run it:
+and run roger:
 
 ```
-git clone git@github.com:namshi/roger.git
-
-cd roger
-
-docker build -t namshi/roger .
-
 docker run -ti -p 6600:6600 \
 -v /tmp/logs:/tmp/roger-builds/logs \
 -v $(pwd)/db:/db \
