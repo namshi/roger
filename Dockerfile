@@ -4,25 +4,22 @@ MAINTAINER Alessandro Nadalin "alessandro.nadalin@gmail.com"
 
 # dev deps
 RUN npm install -g nodemon
-RUN apt-get update && \
-    apt-get install -y git && \
-    apt-get clean && \
+RUN apt-get update
+RUN apt-get install -y git python
+RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     find /var/log -type f | while read f; do echo -ne '' > $f; done;
 
-RUN mkdir /tmp/roger-builds
-RUN mkdir /tmp/roger-builds/logs
-RUN mkdir /tmp/roger-builds/tars
-RUN mkdir /tmp/roger-builds/sources
+RUN mkdir /tmp/roger-builds /tmp/roger-builds/logs /tmp/roger-builds/tars /tmp/roger-builds/sources
 
 COPY . /src
 
-RUN npm cache clean
-
+# build the client
 WORKDIR /src/src/client
 RUN npm install
 RUN npm run build
 
+# build the server
 WORKDIR /src
 RUN npm install
 
