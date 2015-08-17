@@ -11,7 +11,7 @@ module.exports = function(project, options, notificationOptions) {
   aws.config.region           = notificationOptions.region;
   var ses                     = new aws.SES({apiVersion: '2010-12-01'});
   var recipients              = [];
-  
+
   _.each(notificationOptions.to, function(recipient){
     if (recipient == 'committer' && options.author) {
       recipients.push(options.author)
@@ -20,8 +20,8 @@ module.exports = function(project, options, notificationOptions) {
     }
   })
 
-  ses.sendEmail( { 
-    Source: notificationOptions.from, 
+  ses.sendEmail( {
+    Source: notificationOptions.from,
     Destination: { ToAddresses: recipients },
     Message: {
       Subject: {

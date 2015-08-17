@@ -1,132 +1,78 @@
-var _          = require('lodash');
-var moment     = require('moment');
-var yaml       = require('js-yaml');
-var fs         = require('fs');
-var url        = require('url');
-var dispatcher = require('./dispatcher');
-var storage    = {};
+var dispatcher = require('./dispatcher')
+var config     = require('./config')
+var adapter    = require('./storage/' + config.get('app.storage'))
 
 /**
- * Initializing the DB.
+ * The storage object is simply
+ * responsible for proxying a
+ * storage adapter (ie. mysql)
+ * and defining the interface
+ * that the adapter needs to
+ * implement.
+ *
+ * If you wish to implement your own
+ * storage solution, you will only
+ * need to implement the methods
+ * exported here.
+ *
+ * For an exaple implementation,
+ * see storage/file.js, our super-dummy
+ * file-based storage system.
+ *
+ * @type {Object}
  */
-try {
-  var data    = yaml.safeLoad(fs.readFileSync('/db/data.yml'));
-} catch (err){
-  var data = {builds: {}};
-}
+module.exports = {
+  /**
+   * Saves build information.
+   */
+  saveBuild: function(id, tag, project, branch, status){
+    return adapter.saveBuild(id, tag, project, branch, status).then(function(result){
+      dispatcher.emit('storage-updated');
 
-/**
- * Flush changes to disk.
- */
-storage.flush = function(){
-  try {
-    fs.mkdirSync('/db');
-  } catch(err) {
-    if ( err.code != 'EEXIST' ) throw err;
-  }
-  fs.writeFileSync('/db/data.yml', yaml.safeDump(data));
-  dispatcher.emit('storage-updated');
-}
-
-/**
- * Saves build information.
- */
-storage.saveBuild = function(id, tag, project, branch, status) {
-  data.builds[id] = {
-    branch: branch,
-    project: project,
-    status: status,
-    id: id,
-    tag: tag,
-    created_at: data.builds[id] ? data.builds[id].created_at : moment().format(),
-    updated_at: moment().format()
-  }
-
-  storage.flush();
-};
-
-/**
- * Returns all builds of a project,
- * DESC sorted.
- */
-storage.getBuilds = function(limit) {
-  limit = limit || 10
-
-  return _.sortBy(data.builds, function(build) {
-    return - moment(build.updated_at).unix()
-  }).slice(0, limit);
-};
-
-/**
- * Returns all started jobs.
- */
-storage.getStartedBuilds = function() {
-  return _.where(data.builds, {status: 'started'});
-};
-
-/**
- * Returns all jobs that are either started
- * or queued.
- */
-storage.getPendingBuilds = function() {
-  return _.where(data.builds, function(build){
-    return build.status === 'started' || build.status === 'queued'
-  });
-};
-
-/**
- * Returns all projects,
- * DESC sorted by latest build.
- */
-storage.getProjects = function(limit) {
-  limit = limit || 10
-  var projects = [];
-
-  _.each(_.sortBy(data.builds, function(build) {
-    return - moment(build.updated_at).unix()
-  }), function(build){
-    var u = url.parse(build.project)
-    var alias = u.pathname
-    var parts = alias.split('__')
-
-    if (parts.length === 2) {
-      alias = parts[1] + ' (' + parts[0].substr(1)  + ')'
-    }
-
-    projects.push({
-      name: build.project,
-      alias: alias,
-      latest_build: build
+      return result;
     })
-  });
-
-  return projects.slice(0, limit);
-};
-
-/**
- * Returns all builds of a project,
- * DESC sorted.
- */
-storage.getBuildsByProject = function(projectName) {
-  var builds = _.where(data.builds, {project: projectName});
-
-  return _.sortBy(builds, function(build) {
-    return - moment(build.updated_at).unix()
-  });
-};
-
-/**
- * Returns a particular build for a project.
- */
-storage.getBuildByProject = function(id, projectName) {
-  return _.where(data.builds, {project: projectName, id: id})[0];
-};
-
-/**
- * Returns a particular build for a project.
- */
-storage.getBuild = function(id) {
-  return _.where(data.builds, {id: id})[0];
-};
-
-module.exports = storage;
+  },
+  /**
+   * Returns all builds of a project,
+   * DESC sorted.
+   */
+  getBuilds: function(limit) {
+    return adapter.getBuilds(limit)
+  },
+  /**
+   * Returns all started jobs.
+   */
+  getStartedBuilds: function(){
+    return this.getBuildsByStatus(['started'])
+  },
+  /**
+   * Returns all jobs that are either started
+   * or queued.
+   */
+  getPendingBuilds: function(){
+    return this.getBuildsByStatus(['started', 'queued'])
+  },
+  /**
+   * Returns a list of builds in the given
+   * statuses.
+   *
+   * @param  {list} statuses
+   * @return {list}
+   */
+  getBuildsByStatus: function(statuses){
+    return adapter.getBuildsByStatus(statuses)
+  },
+  /**
+   * Returns all projects,
+   * DESC sorted by latest build.
+   */
+  getProjects: function(limit){
+    return adapter.getProjects(limit)
+  },
+  /**
+   * Returns a particular build.
+   */
+  getBuild: function(id){
+    return adapter.getBuild(id)
+  }
+}

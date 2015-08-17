@@ -3,8 +3,29 @@ var _       = require('lodash');
 var config  = require('./config');
 var utils   = {};
 
+/**
+ * Gets a roger path
+ *
+ * @param  {string} to
+ * @return {string}
+ */
 utils.path = function(to) {
   return config.get('paths.' + to);
+}
+
+/**
+ * Throw a simple exception with the
+ * given name and message.
+ *
+ * @param  {string} name
+ * @param  {string} message
+ * @throws {Error}
+ */
+utils.throw = function(name, message){
+  var e = new Error(message)
+  e.name = name
+
+  throw e
 }
 
 /**

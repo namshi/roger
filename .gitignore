@@ -3,3 +3,4 @@ node_modules
 registry
 .idea
 dist
+config.yml
