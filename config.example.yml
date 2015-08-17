@@ -1,5 +1,6 @@
-projects:
-  redis:
-    branch:       master
-    from:         https://github.com/dockerfile/redis
-    registry:     127.0.0.1:5000
+auth:
+  dockerhub: # these credentials are only useful if you need to push to the dockerhub
+    username: user # your username on the dockerhub
+    email:    someone@gmail.com # your...well, you get it
+    password: YOUR_DOCKERHUB_PASSWORD --> see https://github.com/namshi/roger#sensitive-data
+  github: YOUR_GITHUB_TOKEN # General token to be used to authenticate to clone any project or comment on PRs (https://github.com/settings/tokens/new)
