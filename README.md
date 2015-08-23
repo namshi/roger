@@ -63,7 +63,7 @@ auth:
 and run roger:
 
 ```
-docker run -ti -p 6600:6600 \
+docker run -ti -p 8080:8080 \
 -v /tmp/logs:/tmp/roger-builds/logs \
 -v $(pwd)/db:/db \
 -v /path/to/your/config.yml:/config.yml \
@@ -76,11 +76,11 @@ something like:
 
 ```
 2015-01-27T17:52:50.827Z - info: using config: {...}}
-Roger running on port 6600
+Roger running on port 8080
 ```
 
 and you can open the web interface up
-on your [localhost](http://localhost:6600).
+on your [localhost](http://localhost:8080).
 
 Now, time for our first build: pick a project of yours,
 on github, and add a `build.yml` file in the root of the
@@ -91,8 +91,8 @@ redis: # this is the name of your project
   registry: registry.company.com # your private registry, ie. 127.0.0.1:5000
 ```
 
-then visit `http://localhost:6600/api/build?repo=URL_OF_YOUR_REPO`
-(ie. `localhost:6600/api/build?repo=https://github.com/namshi/test-build`)
+then visit `http://localhost:8080/api/build?repo=URL_OF_YOUR_REPO`
+(ie. `localhost:8080/api/build?repo=https://github.com/namshi/test-build`)
 and you should receive a confirmation that the build has been
 scheduled:
 

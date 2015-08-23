@@ -26,5 +26,5 @@ RUN npm run build
 WORKDIR /src
 RUN npm install
 
-EXPOSE  6600
+EXPOSE  8080
 CMD ["node", "src/index.js", "--config", "/config.yml"]

@@ -1,7 +1,7 @@
 server:
   build: .
   ports:
-   - "6600:6600"
+   - "8080:8080"
   volumes:
    - .:/src
    - /var/run/docker.sock:/tmp/docker.sock

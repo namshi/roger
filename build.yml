@@ -1,5 +1,0 @@
-roger:
-  notify:
-  - github
-  - emailSes
-  registry: namshi.net
