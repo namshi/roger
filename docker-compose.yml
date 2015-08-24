@@ -5,11 +5,11 @@ server:
   volumes:
    - .:/src
    - /var/run/docker.sock:/tmp/docker.sock
-   - ./config.yml:/config.yml
+   - $HOME/volumes/ci/roger:/roger/
    - ./examples/auth:/auth
    - ./db:/db
    - ./logs:/tmp/roger-builds/logs
-  command: nodemon /src/src/index.js --config /config.yml
+  command: nodemon /src/src/index.js --config /roger/config.yml
   environment:
     VIRTUAL_HOST: roger.swag
 registry:
