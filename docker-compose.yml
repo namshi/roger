@@ -5,7 +5,7 @@ server:
   volumes:
    - .:/src
    - /var/run/docker.sock:/tmp/docker.sock
-   - $HOME/volumes/ci/roger:/roger/
+   - ~/volumes/ci/roger:/roger/
    - ./examples/auth:/auth
    - ./db:/db
    - ./logs:/tmp/roger-builds/logs
