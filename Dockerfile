@@ -27,4 +27,4 @@ WORKDIR /src
 RUN npm install
 
 EXPOSE  6600
-CMD ["node", "src/index.js", "--config", "/config.yml"]
+CMD ["node", "src/index.js", "--config", "/roger/config.yml"]
