@@ -29,7 +29,7 @@ routes.bind(app);
  *
  * #swag
  */
-var port = 6600;
+var port = 8080;
 var server = app.listen(port);
 // enable websockets support
 socket(server);

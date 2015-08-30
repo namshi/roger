@@ -1,5 +1,5 @@
 app:
-  url: 'http://localhost:6600'
+  url: 'http://localhost:8080'
   storage: file
 builds:
   concurrent: 5 # max number of builds to run in parallel
