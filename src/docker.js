@@ -29,7 +29,13 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, do
       buildLogger.info('[%s] Build is in progress...', buildId);
 
       response.on('data', function(out){
-        var result = JSON.parse(out.toString('utf-8'));
+        var result = {}
+
+        try {
+          result = JSON.parse(out.toString('utf-8'));
+        } catch (err) {
+          buildLogger.error('[%s] %s', buildId, err)
+        }
 
         if (result.error) {
           buildLogger.error('[%s] %s', buildId, result.error)
@@ -130,7 +136,14 @@ docker.push = function(image, buildId, uuid, branch, registry, buildLogger) {
       });
 
       data.on('data', function(out){
-        var message = JSON.parse(out.toString('utf-8'));
+        var message = {}
+
+        try {
+          message = JSON.parse(out.toString('utf-8'));
+        } catch (err) {
+          buildLogger.error("[%s] %s", buildId, err)
+        }
+
 
         if (message.error) {
           deferred.reject(message)
@@ -148,6 +161,7 @@ docker.push = function(image, buildId, uuid, branch, registry, buildLogger) {
       })
     }
   }, docker.getAuth(buildId, registry, buildLogger));
+
   return deferred.promise;
 };
 
