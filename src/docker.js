@@ -14,41 +14,39 @@ if (fs.existsSync('/tmp/docker.sock')) {
 }
 
 function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, dockerOptions, uuid) {
-  return function() {
-    return Q.Promise(function(resolve, reject) {
-      delete dockerOptions.dockerfile;
-      var extractPath = project.build.extract;
-      extractPath += (extractPath[extractPath.length] === '/') ? '.'  : '/.';
-      buildLogger.info('Boldly extracting produced stuff form: ', extractPath);
+  return Q.Promise(function(resolve, reject) {
+    delete dockerOptions.dockerfile;
+    var extractPath = project.build.extract;
+    extractPath += (extractPath[extractPath.length] === '/') ? '.'  : '/.';
+    buildLogger.info('Boldly extracting produced stuff form: ', extractPath);
 
-      docker.client.createContainer({Image: builderId, name: uuid, Cmd: ['/bin/sh']}, function (err, container) {
-        if (err) {
-          reject(err);
+    docker.client.createContainer({Image: builderId, name: uuid, Cmd: ['/bin/sh']}, function (err, container) {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      container.getArchive({path: extractPath}, function(error, data) {
+        if (error) {
+          reject(error);
           return;
         }
 
-        container.getArchive({path: extractPath}, function(error, data) {
-          if (error) {
-            reject(error);
-            return;
-          }
+        var srcPath = path.join(config.get('paths.tars'), project.name + '_' + uuid + '.tar');
+        var destination = fs.createWriteStream(srcPath);
 
-          var srcPath = path.join(config.get('paths.tars'), project.name + '_' + uuid + '.tar');
-          var destination = fs.createWriteStream(srcPath);
+        data.on('error', reject);
 
-          data.on('error', reject);
-
-          destination.on('finish', function() {
-            container.remove(function() {
-              docker.buildImage(project, srcPath, imageId, buildId, buildLogger, dockerOptions, uuid).then(resolve).catch(reject);
-            });
+        destination.on('finish', function() {
+          container.remove(function() {
+            docker.buildImage(project, srcPath, imageId, buildId, buildLogger, dockerOptions, uuid).then(resolve).catch(reject);
           });
-
-          data.pipe(destination);
         });
+
+        data.pipe(destination);
       });
     });
-  };
+  });
 }
 
 /**
@@ -57,49 +55,49 @@ function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, 
  * @return promise
  */
 docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, dockerOptions, uuid) {
-  var deferred = Q.defer();
-  var tag = imageId + ((dockerOptions.dockerfile) ? '-builder' : '');
+  return Q.promise(function(resolve, reject) {
+    var tag = imageId + ((dockerOptions.dockerfile) ? '-builder' : '');
 
-  docker.client.buildImage(tarPath, _.extend({t: tag}, dockerOptions), function(err, response) {
-    if (err) {
-      deferred.reject(err);
-      return;
-    }
-
-    buildLogger.info('[%s] Build is in progress...', tag);
-
-    response.on('data', function(out) {
-      var result = {};
-
-      try {
-        result = JSON.parse(out.toString('utf-8'));
-      } catch (err) {
-        buildLogger.error('[%s] %s', tag, err);
-      }
-
-      if (result.error) {
-        buildLogger.error('[%s] %s', tag, result.error);
-        deferred.reject(result.error);
+    docker.client.buildImage(tarPath, _.extend({t: tag}, dockerOptions), function(err, response) {
+      if (err) {
+        reject(err);
         return;
       }
 
-      if (result.progress) {
-        result.status = result.status + ' ' + result.progress;
-      }
+      buildLogger.info('[%s] Build is in progress...', tag);
 
-      buildLogger.info('[%s] %s', tag, result.stream || result.status);
-    });
+      response.on('data', function(out) {
+        var result = {};
 
-    response.on('end', function() {
-      deferred.resolve();
+        try {
+          result = JSON.parse(out.toString('utf-8'));
+        } catch (err) {
+          buildLogger.error('[%s] %s', tag, err);
+        }
+
+        if (result.error) {
+          buildLogger.error('[%s] %s', tag, result.error);
+          reject(result.error);
+          return;
+        }
+
+        if (result.progress) {
+          result.status = result.status + ' ' + result.progress;
+        }
+
+        buildLogger.info('[%s] %s', tag, result.stream || result.status);
+      });
+
+      response.on('end', function() {
+        if (dockerOptions.dockerfile) {
+          extractAndRepackage(project, imageId, tag, buildId, buildLogger, dockerOptions, uuid).then(resolve);
+          return;
+        }
+
+        resolve();
+      });
     });
   });
-
-  if (dockerOptions.dockerfile) {
-    deferred.promise.then(extractAndRepackage(project, imageId, tag, buildId, buildLogger, dockerOptions, uuid));
-  }
-
-  return deferred.promise;
 };
 
 /**
