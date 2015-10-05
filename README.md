@@ -37,6 +37,7 @@ Ready to hack?
   * [s3](#s3)
 * [hooks](#hooks)
   * [after-build](#after-build)
+* [Slim your images](#use-different-images-for-building-and-running)
 * [APIs](#apis)
   * [get all projects](#listing-all-projects)
   * [get all builds](#listing-all-builds)
@@ -223,6 +224,28 @@ forward you to the [example provider](https://github.com/namshi/roger/blob/maste
 Roger exposes a simple HTTP interface
 and provides integration with some SCM
 provider, ie. GitHub.
+
+## Use different images for building and running your app
+Ever felt like your images are too chubby?
+Deploying the same image you use for development and building
+often carries expendable `stuff` with it.
+An example might be compass: css-ninjias love
+their scss files but we end up with an images full of
+ruby we might not really need.
+You can easilly instruct Roger to use a specific
+building image, extract the result and package it up in a slimmer one!
+Simply add the `build` section to the fatty project in your `build.yml`
+
+```yml
+  project:
+  build:
+    dockerfile: dockerfile.build
+    extract: /src
+```
+
+Roger will than use `dockerfile.build` as dockerfile for the building image,
+extract the content of `/src` and repackt it in a slimmer images as defined
+by the usuale Dockerfile (you need to provide you own .build and slim Dockerfile ;))
 
 ### Github
 

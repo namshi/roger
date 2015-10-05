@@ -99,8 +99,8 @@ builder.schedule = function(repo, gitBranch, uuid, dockerOptions) {
       project.registry        = project.registry || '127.0.0.1:5000';
 
       console.log('project ' + name + ': ', project);
-      if (!!project.container) {
-        dockerOptions.dockerfile = project.container.file;
+      if (!!project.build) {
+        dockerOptions.dockerfile = project.build.dockerfile;
       }
 
       builds.push(builder.build(project, uuid + '-' + project.name, path, gitBranch, branch, dockerOptions));
@@ -152,7 +152,7 @@ builder.build = function(project, uuid, path, gitBranch, branch, dockerOptions) 
   }).then(function() {
     buildLogger.info('[%s] Created tarball for %s', buildId, uuid);
 
-    return docker.buildImage(project, tarPath, imageId + ':' + branch, buildId, buildLogger, dockerOptions);
+    return docker.buildImage(project, tarPath, imageId + ':' + branch, buildId, buildLogger, dockerOptions, uuid);
   }).then(function() {
     buildLogger.info('[%s] %s built succesfully', buildId, uuid);
     buildLogger.info('[%s] Tagging %s', buildId, uuid);
