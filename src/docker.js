@@ -56,6 +56,7 @@ function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, 
  */
 docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, dockerOptions, uuid) {
   return Q.promise(function(resolve, reject) {
+    dockerOptions = dockerOptions || {};
     var tag = imageId + ((dockerOptions.dockerfile) ? '-builder' : '');
 
     docker.client.buildImage(tarPath, _.extend({t: tag}, dockerOptions), function(err, response) {
