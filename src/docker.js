@@ -27,9 +27,19 @@ function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, 
       }
 
       container.getArchive({path: extractPath}, function(error, data) {
+        var failed = false;
         if (error) {
           reject(error);
           return;
+        }
+
+        function fail(error) {
+          if (!failed) {
+              container.remove(function() {
+              failed = true;
+              reject(error);
+            });
+          }
         }
 
         var srcPath = path.join(config.get('paths.tars'), project.name + '_' + uuid + '.tar');
@@ -42,7 +52,8 @@ function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, 
           process.stdout.write('\n');
         });
 
-        data.on('error', reject);
+        data.on('error', fail);
+        destination.on('error', fail);
 
         destination.on('finish', function() {
           container.remove(function() {
