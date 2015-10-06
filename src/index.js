@@ -1,5 +1,4 @@
-var express = require('express')
-var _       = require('lodash')
+var express = require('express');
 var logger  = require('./logger');
 var config  = require('./config');
 var routes  = require('./routes');
@@ -19,7 +18,7 @@ logger.info('using config:', JSON.stringify(utils.obfuscate(config.get())));
 var app = express();
 
 if (config.get('app.auth')) {
-  auth.enable(app)
+  auth.enable(app);
 }
 
 routes.bind(app);

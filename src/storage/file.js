@@ -1,9 +1,9 @@
-var _          = require('lodash')
-var moment     = require('moment')
-var yaml       = require('js-yaml')
-var fs         = require('fs')
-var url        = require('url')
-var Q          = require('q')
+var _          = require('lodash');
+var moment     = require('moment');
+var yaml       = require('js-yaml');
+var fs         = require('fs');
+var url        = require('url');
+var Q          = require('q');
 
 /**
  * This is the simplest storage system
@@ -27,15 +27,16 @@ var Q          = require('q')
  *
  * @type {Object}
  */
-var file       = {}
+var file       = {};
+var data = {builds: {}};
 
 /**
  * Initializing the DB.
  */
 try {
-  var data    = yaml.safeLoad(fs.readFileSync('/db/data.yml'));
-} catch (err){
-  var data = {builds: {}};
+  data = yaml.safeLoad(fs.readFileSync('/db/data.yml'));
+} catch (err) {
+  console.error(err);
 }
 
 /**
@@ -45,8 +46,11 @@ function flush() {
   try {
     fs.mkdirSync('/db');
   } catch(err) {
-    if ( err.code != 'EEXIST' ) throw err;
+    if ( err.code !== 'EEXIST' ) {
+      throw err;
+    }
   }
+
   fs.writeFileSync('/db/data.yml', yaml.safeDump(data));
 }
 
@@ -57,77 +61,77 @@ file.saveBuild = function(id, tag, project, branch, status) {
     status: status,
     id: id,
     tag: tag,
-    created_at: data.builds[id] ? data.builds[id].created_at : moment().format(),
-    updated_at: moment().format()
-  }
+    'created_at': data.builds[id] ? data.builds[id]['created_at'] : moment().format(),
+    'updated_at': moment().format()
+  };
 
   flush();
 
-  return Q.Promise(function(resolve){
+  return Q.Promise(function(resolve) {
     resolve();
-  })
+  });
 };
 
 file.getBuilds = function(limit) {
-  return Q.Promise(function(resolve){
-    limit = limit || 10
+  return Q.Promise(function(resolve) {
+    limit = limit || 10;
 
     var builds = _.sortBy(data.builds, function(build) {
-      return - moment(build.updated_at).unix()
+      return - moment(build['updated_at']).unix();
     }).slice(0, limit);
 
-    resolve(builds)
-  })
+    resolve(builds);
+  });
 };
 
 file.getBuildsByStatus = function(statuses) {
-  return Q.Promise(function(resolve){
-    var builds = _.where(data.builds, function(build){
-      return _.contains(statuses, build.status)
+  return Q.Promise(function(resolve) {
+    var builds = _.where(data.builds, function(build) {
+      return _.contains(statuses, build.status);
     });
 
-    resolve(builds)
-  })
+    resolve(builds);
+  });
 };
 
 file.getProjects = function(limit) {
-  return Q.Promise(function(resolve){
-    limit = limit || 10
+  return Q.Promise(function(resolve) {
+    limit = limit || 10;
     var projects = [];
 
     _.each(_.sortBy(data.builds, function(build) {
-      return - moment(build.updated_at).unix()
-    }), function(build){
-      var u = url.parse(build.project)
-      var alias = u.pathname
-      var parts = alias.split('__')
+      return - moment(build['updated_at']).unix();
+    }), function(build) {
+      var u = url.parse(build.project);
+      var alias = u.pathname;
+      var parts = alias.split('__');
 
       if (parts.length === 2) {
-        alias = parts[1] + ' (' + parts[0].substr(1)  + ')'
+        alias = parts[1] + ' (' + parts[0].substr(1)  + ')';
       }
 
       projects.push({
         name: build.project,
         alias: alias,
-        latest_build: build
-      })
+        'latest_build': build
+      });
     });
 
-    resolve(_.uniq(projects.slice(0, limit), 'name'))
-  })
+    resolve(_.uniq(projects.slice(0, limit), 'name'));
+  });
 };
 
 file.getBuild = function(id) {
-  return Q.Promise(function(resolve, reject){
-    var build = _.where(data.builds, {id: id})[0]
+  return Q.Promise(function(resolve, reject) {
+    var build = _.where(data.builds, {id: id})[0];
 
     if (build) {
-      resolve(build)
-      return
+      resolve(build);
+      return;
     }
 
-    reject()
-  })
+    reject();
+  });
 };
 
-module.exports = file
+module.exports = file;

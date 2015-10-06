@@ -4,9 +4,8 @@ var Q               = require('q');
 var fs              = require('fs');
 var config          = require('./config');
 var tar             = require('./tar');
-var utils           = require('./utils');
-var os              = require('os');
 var docker          = {client: {}};
+var path            = require('path');
 
 if (fs.existsSync('/tmp/docker.sock')) {
   docker.client = new Docker({socketPath: '/tmp/docker.sock'});
@@ -14,32 +13,71 @@ if (fs.existsSync('/tmp/docker.sock')) {
   docker.client = new Docker({host: require('netroute').getGateway(), port: 2375});
 }
 
+function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, dockerOptions, uuid) {
+  return Q.Promise(function(resolve, reject) {
+    delete dockerOptions.dockerfile;
+    var extractPath = project.build.extract;
+    extractPath += (extractPath[extractPath.length] === '/') ? '.'  : '/.';
+    buildLogger.info('Boldly extracting produced stuff form: ', extractPath);
+
+    docker.client.createContainer({Image: builderId, name: uuid, Cmd: ['/bin/sh']}, function (err, container) {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      container.getArchive({path: extractPath}, function(error, data) {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        var srcPath = path.join(config.get('paths.tars'), project.name + '_' + uuid + '.tar');
+        var destination = fs.createWriteStream(srcPath);
+
+        data.on('error', reject);
+
+        destination.on('finish', function() {
+          container.remove(function() {
+            docker.buildImage(project, srcPath, imageId, buildId, buildLogger, dockerOptions, uuid).then(resolve).catch(reject);
+          });
+        });
+
+        data.pipe(destination);
+      });
+    });
+  });
+}
+
 /**
  * Builds a docker image.
  *
  * @return promise
  */
-docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, dockerOptions) {
-  var deferred = Q.defer();
+docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, dockerOptions, uuid) {
+  return Q.promise(function(resolve, reject) {
+    var tag = imageId + ((dockerOptions.dockerfile) ? '-builder' : '');
 
-  docker.client.buildImage(tarPath, _.extend({t: imageId}, dockerOptions), function (err, response){
-    if (err) {
-      deferred.reject(err);
-    } else {
-      buildLogger.info('[%s] Build is in progress...', buildId);
+    docker.client.buildImage(tarPath, _.extend({t: tag}, dockerOptions), function(err, response) {
+      if (err) {
+        reject(err);
+        return;
+      }
 
-      response.on('data', function(out){
-        var result = {}
+      buildLogger.info('[%s] Build is in progress...', tag);
+
+      response.on('data', function(out) {
+        var result = {};
 
         try {
           result = JSON.parse(out.toString('utf-8'));
         } catch (err) {
-          buildLogger.error('[%s] %s', buildId, err)
+          buildLogger.error('[%s] %s', tag, err);
         }
 
         if (result.error) {
-          buildLogger.error('[%s] %s', buildId, result.error)
-          deferred.reject(result.error);
+          buildLogger.error('[%s] %s', tag, result.error);
+          reject(result.error);
           return;
         }
 
@@ -47,16 +85,19 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, do
           result.status = result.status + ' ' + result.progress;
         }
 
-        buildLogger.info("[%s] %s", buildId, result.stream || result.status);
+        buildLogger.info('[%s] %s', tag, result.stream || result.status);
       });
 
-      response.on('end', function(){
-        deferred.resolve();
+      response.on('end', function() {
+        if (dockerOptions.dockerfile) {
+          extractAndRepackage(project, imageId, tag, buildId, buildLogger, dockerOptions, uuid).then(resolve);
+          return;
+        }
+
+        resolve();
       });
-    }
+    });
   });
-
-  return deferred.promise;
 };
 
 /**
@@ -64,13 +105,13 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, do
  *
  * @return promise
  */
-docker.tag = function(imageId, buildId, branch, buildLogger) {
+docker.tag = function(imageId, buildId, branch) {
   var deferred  = Q.defer();
   var image     = docker.client.getImage(imageId);
 
-  image.tag({repo: imageId, tag: branch}, function(){
+  image.tag({repo: imageId, tag: branch}, function() {
     deferred.resolve(image);
-  })
+  });
 
   return deferred.promise;
 };
@@ -125,40 +166,40 @@ docker.getAuth = function(buildId, registry, buildLogger) {
 docker.push = function(image, buildId, uuid, branch, registry, buildLogger) {
   var deferred  = Q.defer();
 
-  image.push({tag: branch, force: true}, function(err, data){
+  image.push({tag: branch, force: true}, function(err, data) {
     var somethingWentWrong = false;
 
     if (err) {
       deferred.reject(err);
     } else {
-      data.on('error', function(err){
+      data.on('error', function(err) {
         deferred.reject(err);
       });
 
-      data.on('data', function(out){
-        var message = {}
+      data.on('data', function(out) {
+        var message = {};
 
         try {
           message = JSON.parse(out.toString('utf-8'));
         } catch (err) {
-          buildLogger.error("[%s] %s", buildId, err)
+          buildLogger.error("[%s] %s", buildId, err);
         }
 
 
         if (message.error) {
-          deferred.reject(message)
+          deferred.reject(message);
           somethingWentWrong = true;
         }
 
-        buildLogger.info("[%s] %s", buildId, message.status || message.error)
+        buildLogger.info('[%s] %s', buildId, message.status || message.error);
       });
 
-      data.on('end', function(){
+      data.on('end', function() {
         if (!somethingWentWrong) {
-          buildLogger.info("[%s] Pushed image of build %s to the registry at http://%s", buildId, uuid, registry)
+          buildLogger.info('[%s] Pushed image of build %s to the registry at http://%s', buildId, uuid, registry);
           deferred.resolve();
         }
-      })
+      });
     }
   }, docker.getAuth(buildId, registry, buildLogger));
 
@@ -170,18 +211,18 @@ docker.push = function(image, buildId, uuid, branch, registry, buildLogger) {
  * the host machine.
  */
 docker.copy = function(container, containerPath, hostPath) {
-  return Q.Promise(function(resolve, reject){
-    container.copy({Resource: containerPath}, function(err, data){
+  return Q.Promise(function(resolve, reject) {
+    container.copy({Resource: containerPath}, function(err, data) {
       if (err) {
         reject(err);
         return;
       }
 
-      return tar.createFromStream(hostPath, data).then(function(){
+      return tar.createFromStream(hostPath, data).then(function() {
         resolve();
       });
-    })
+    });
   });
-}
+};
 
 module.exports = docker;
