@@ -35,6 +35,7 @@ Ready to hack?
   * [email (Amazon SES)](#email-through-amazon-ses)
 * [publishing](#publishing-artifacts)
   * [s3](#s3)
+* [use different images for building and running your app](#use-different-images-for-building-and-running-your-app)
 * [hooks](#hooks)
   * [after-build](#after-build)
 * [Slim your images](#use-different-images-for-building-and-running)
@@ -219,33 +220,87 @@ that accepts an app and register its own auth mechanism:
 it sounds more complicated than it is, so I'll just
 forward you to the [example provider](https://github.com/namshi/roger/blob/master/examples/auth/local.js).
 
+## Use different images for building and running your app
+
+Ever felt like your images are too chubby?
+
+Deploying the same image you use for development and building
+often carries expendable `stuff` with it.
+
+An example might be compass: css-ninjias love
+their scss files but we end up with an images full of
+ruby we might not really need.
+
+You can easilly instruct Roger to use a specific
+building image, extract the result and package it up in a slimmer one!
+
+Simply add the `build` section to the fatty project in your `build.yml`
+
+```yml
+  project:
+    build:
+      dockerfile: dockerfile.build
+      extract: /src
+```
+
+Roger will than use `dockerfile.build` as dockerfile for the building image,
+extract the content of `/src` and repack it in a slimmer image as defined
+by the usuale Dockerfile (you need to provide you own build and slim Dockerfile ;)).
+
+For example this could be your regular `Dockerfile`:
+
+```
+FROM alpine:edge
+
+MAINTAINER you@gmail.com
+
+RUN apk add --update nodejs='=4.1.1-r0' && rm -rf /var/cache/apk/*
+
+COPY . /src
+WORKDIR /src
+
+EXPOSE 8080
+
+CMD ["node", "src/app.js"]
+```
+
+while the `Dockerfile.build` could look like this:
+
+```
+FROM node:latest
+
+MAINTAINER you@gmail.com
+
+RUN apt-get update
+RUN apt-get install -y ruby-full build-essential
+RUN gem install sass compass --no-ri --no-rdoc
+
+RUN npm install -g gulp nodemon
+RUN npm install -g gulp bower
+RUN npm install -g gulp mocha
+
+COPY . /src
+WORKDIR /src
+
+RUN npm install && \
+    bower install --allow-root && \
+    gulp sass
+```
+
+So that the `build.yml` would look like this:
+
+``` yaml
+myProject:
+  build:
+    dockerfile: Dockerfile.build
+    extract: /src
+```
+
 ## Build hooks
 
 Roger exposes a simple HTTP interface
 and provides integration with some SCM
 provider, ie. GitHub.
-
-## Use different images for building and running your app
-Ever felt like your images are too chubby?
-Deploying the same image you use for development and building
-often carries expendable `stuff` with it.
-An example might be compass: css-ninjias love
-their scss files but we end up with an images full of
-ruby we might not really need.
-You can easilly instruct Roger to use a specific
-building image, extract the result and package it up in a slimmer one!
-Simply add the `build` section to the fatty project in your `build.yml`
-
-```yml
-  project:
-  build:
-    dockerfile: dockerfile.build
-    extract: /src
-```
-
-Roger will than use `dockerfile.build` as dockerfile for the building image,
-extract the content of `/src` and repackt it in a slimmer images as defined
-by the usuale Dockerfile (you need to provide you own .build and slim Dockerfile ;))
 
 ### Github
 
