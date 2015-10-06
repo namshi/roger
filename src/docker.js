@@ -34,6 +34,13 @@ function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, 
 
         var srcPath = path.join(config.get('paths.tars'), project.name + '_' + uuid + '.tar');
         var destination = fs.createWriteStream(srcPath);
+        data.on('data', function() {
+          process.stdout.write('•');
+        });
+
+        data.on('end', function() {
+          process.stdout.write('\n');
+        });
 
         data.on('error', reject);
 
