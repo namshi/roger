@@ -7,10 +7,18 @@ var tar             = require('./tar');
 var docker          = {client: {}};
 var path            = require('path');
 
-if (fs.existsSync('/tmp/docker.sock')) {
+var unixSocket = config.get('connect.socket') || '/tmp/docker.sock';
+var tcpHost = require('netroute').getGateway();
+var tcpPort = config.get('connect.tcp.port') || 2375;
+
+if (config.get('connect.tcp.host') && config.get('connect.tcp.host') !== '__gateway__') {
+  tcpHost = config.get('connect.tcp.host');
+}
+
+if (fs.existsSync(unixSocket) && !config.get('connect.tcp.force')) {
   docker.client = new Docker({socketPath: '/tmp/docker.sock'});
 } else {
-  docker.client = new Docker({host: require('netroute').getGateway(), port: 2375});
+  docker.client = new Docker({host: tcpHost, port: tcpPort});
 }
 
 function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, dockerOptions, uuid) {
@@ -25,7 +33,7 @@ function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, 
         reject(err);
         return;
       }
-
+      buildLogger.info('Created container ' + uuid + ' for ' + builderId);
       container.getArchive({path: extractPath}, function(error, data) {
         var failed = false;
         if (error) {
@@ -42,26 +50,34 @@ function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, 
           }
         }
 
-        var srcPath = path.join(config.get('paths.tars'), project.name + '_' + uuid + '.tar');
-        var destination = fs.createWriteStream(srcPath);
-        data.on('data', function() {
-          process.stdout.write('•');
-        });
+        try {
+          var destinationPath = path.join(config.get('paths.tars'), project.name + '_' + uuid + '.tar');
+          var destination = fs.createWriteStream(destinationPath);
 
-        data.on('end', function() {
-          process.stdout.write('\n');
-        });
+          buildLogger.info('Fetching artifacts from ' + extractPath + ' and archiving  them to ' + destinationPath + '...');
 
-        data.on('error', fail);
-        destination.on('error', fail);
-
-        destination.on('finish', function() {
-          container.remove(function() {
-            docker.buildImage(project, srcPath, imageId, buildId, buildLogger, dockerOptions, uuid).then(resolve).catch(reject);
+          data.on('data', function() {
+            buildLogger.info('Copying from ' + extractPath + ' to ' + destinationPath + '...');
           });
-        });
 
-        data.pipe(destination);
+          data.on('end', function() {
+            buildLogger.info(destinationPath + ' done!');
+          });
+
+          data.on('error', fail);
+          destination.on('error', fail);
+
+          destination.on('finish', function() {
+            container.remove(function() {
+              docker.buildImage(project, destinationPath, imageId, buildId, buildLogger, dockerOptions, uuid).then(resolve).catch(reject);
+            });
+          });
+
+          data.pipe(destination);
+
+        } catch(error) {
+          fail(error);
+        }
       });
     });
   });
