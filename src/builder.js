@@ -58,6 +58,7 @@ builder.schedule = function(repo, gitBranch, uuid, dockerOptions) {
   var branch      = gitBranch;
   var builds      = [];
   var cloneUrl    = repo;
+  dockerOptions   = dockerOptions || {};
 
   if (branch === 'master') {
     branch = 'latest';
