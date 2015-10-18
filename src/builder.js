@@ -99,7 +99,7 @@ builder.schedule = function(repo, gitBranch, uuid, dockerOptions) {
       project['github-token'] = githubToken;
       project.registry        = project.registry || '127.0.0.1:5000';
 
-      console.log('project ' + name + ': ', project);
+      console.log('project ' + name + ': ', utils.obfuscate(project));
       if (!!project.build) {
         dockerOptions.dockerfile = project.build.dockerfile;
       }
