@@ -18,3 +18,9 @@ paths:
   sources:  '{{ paths.builds }}/sources'
   tars:     '{{ paths.builds }}/tars'
   logs:     '{{ paths.builds }}/logs'
+connect:
+  socket: '/tmp/docker.sock'
+  tcp:
+    force: false
+    host: '__gateway__'
+    port: 2375
