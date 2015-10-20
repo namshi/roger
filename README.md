@@ -190,6 +190,14 @@ notifications: # configs to notify of build failures / successes
       - john.doe@gmail.com # a list of people who will be notified
       - committer # this is a special value that references the email of the commit author
     from: builds@company.com # sender email (needs to be verified on SES: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
+docker:
+  client: # here you can specify any option accepted by dockerode (https://github.com/apocas/dockerode#getting-started)
+    # by default, we will try to connect to this socket, that is why we launch roger with -v /var/run/docker.sock:/tmp/docker.sock
+    socketPath: '/tmp/docker.sock'
+    # you can specify host, port, protocol...
+    host: __gateway__ # this is a special value that will resolve to the gateway through netroute (http://npmjs.org/package/netroute)
+    port: 2375
+    protocol: http
 ```
 
 ### Configuring auth

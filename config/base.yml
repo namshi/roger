@@ -18,3 +18,6 @@ paths:
   sources:  '{{ paths.builds }}/sources'
   tars:     '{{ paths.builds }}/tars'
   logs:     '{{ paths.builds }}/logs'
+docker:
+  client:
+    socketPath: '/tmp/docker.sock'
