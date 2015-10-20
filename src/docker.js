@@ -7,11 +7,11 @@ var tar             = require('./tar');
 var docker          = {client: {}};
 var path            = require('path');
 
-if (fs.existsSync('/tmp/docker.sock')) {
-  docker.client = new Docker({socketPath: '/tmp/docker.sock'});
-} else {
-  docker.client = new Docker({host: require('netroute').getGateway(), port: 2375});
+if (config.get('docker.client.host') === '__gateway__') {
+  config.config.docker.client.host = require('netroute').getGateway()
 }
+
+docker.client = new Docker(config.get('docker.client'));
 
 function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, dockerOptions, uuid) {
   return Q.Promise(function(resolve, reject) {
