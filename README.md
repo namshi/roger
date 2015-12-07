@@ -58,7 +58,7 @@ auth:
   dockerhub: # these credentials are only useful if you need to push to the dockerhub
     username: user # your username on the dockerhub
     email:    someone@gmail.com # your...well, you get it
-    password: YOUR_DOCKERHUB_PASSWORD --> see https://github.com/namshi/roger#sensitive-data
+    password: YOUR_DOCKERHUB_PASSWORD
   github: YOUR_GITHUB_TOKEN # General token to be used to authenticate to clone any project or comment on PRs (https://github.com/settings/tokens/new)
 ```
 
@@ -178,7 +178,7 @@ auth: # authentication on various providers
   dockerhub: # these credentials are only useful if you need to push to the dockerhub
     username: odino # your username on the dockerhub
     email:    alessandro.nadalin@gmail.com # your...well, you get it
-    password: YOUR_DOCKERHUB_PASSWORD --> see https://github.com/namshi/roger#sensitive-data
+    password: YOUR_DOCKERHUB_PASSWORD
   github: YOUR_SECRET_TOKEN # General token to be used to authenticate to clone any project (https://github.com/settings/tokens/new)
 notifications: # configs to notify of build failures / successes
   github: '{{ auth.github }}' # config values can reference other values, this will post a comment on an open PR
