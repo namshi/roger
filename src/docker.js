@@ -57,6 +57,10 @@ function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, 
 
         destination.on('finish', function() {
           container.remove(function() {
+            if (dockerOptions.finalDockerfile) {
+              dockerOptions.dockerfile = dockerOptions.finalDockerfile;
+            }
+
             docker.buildImage(project, srcPath, imageId, buildId, buildLogger, dockerOptions, uuid).then(resolve).catch(reject);
           });
         });
