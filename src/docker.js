@@ -56,6 +56,7 @@ function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, 
 
         destination.on('finish', function() {
           container.remove(function() {
+            delete project.build;
             docker.buildImage(project, srcPath, imageId, buildId, buildLogger, dockerOptions, uuid).then(resolve).catch(reject);
           });
         });
@@ -112,7 +113,6 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, do
 
       response.on('end', function() {
         if (!!project.build) {
-          delete project.build;
           dockerOptions.dockerfile = project.dockerfile;
           extractAndRepackage(project, imageId, tag, buildId, buildLogger, dockerOptions, uuid).then(resolve);
           return;
