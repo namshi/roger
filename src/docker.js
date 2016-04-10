@@ -112,6 +112,7 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, do
 
       response.on('end', function() {
         if (!!project.build) {
+          delete project.build;
           dockerOptions.dockerfile = project.dockerfile;
           extractAndRepackage(project, imageId, tag, buildId, buildLogger, dockerOptions, uuid).then(resolve);
           return;
