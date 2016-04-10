@@ -101,6 +101,10 @@ builder.schedule = function(repo, gitBranch, uuid, dockerOptions) {
 
       console.log('project ' + name + ': ', utils.obfuscate(project));
 
+      if (!_.isEmpty(project.build)) {
+        project.build.done = false;
+      }
+
       builds.push(builder.build(project, uuid + '-' + project.name, path, gitBranch, branch, dockerOptions));
     });
 
