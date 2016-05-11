@@ -614,9 +614,9 @@
       }
     },
     "node-dir": {
-      "version": "0.1.11",
-      "from": "node-dir@>=0.1.6 <0.2.0",
-      "resolved": "https://registry.npmjs.org/node-dir/-/node-dir-0.1.11.tgz",
+      "version": "0.1.12",
+      "from": "node-dir@0.1.12",
+      "resolved": "https://registry.npmjs.org/node-dir/-/node-dir-0.1.12.tgz",
       "dependencies": {
         "minimatch": {
           "version": "2.0.10",
@@ -624,14 +624,14 @@
           "resolved": "https://registry.npmjs.org/minimatch/-/minimatch-2.0.10.tgz",
           "dependencies": {
             "brace-expansion": {
-              "version": "1.1.3",
+              "version": "1.1.4",
               "from": "brace-expansion@>=1.0.0 <2.0.0",
-              "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.3.tgz",
+              "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.4.tgz",
               "dependencies": {
                 "balanced-match": {
-                  "version": "0.3.0",
-                  "from": "balanced-match@>=0.3.0 <0.4.0",
-                  "resolved": "https://registry.npmjs.org/balanced-match/-/balanced-match-0.3.0.tgz"
+                  "version": "0.4.1",
+                  "from": "balanced-match@>=0.4.1 <0.5.0",
+                  "resolved": "https://registry.npmjs.org/balanced-match/-/balanced-match-0.4.1.tgz"
                 },
                 "concat-map": {
                   "version": "0.0.1",
