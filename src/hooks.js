@@ -7,7 +7,7 @@ var hooks = {};
  * in a container and resolves / rejects
  * based on the hooks exit code.
  */
-function promisifyHook(dockerClient, buildId, command) {
+function promisifyHook(dockerClient, buildId, command, logger) {
   var deferred = Q.defer();
   
   dockerClient.run(buildId, command.split(' '), process.stdout, function (err, data, container) {
@@ -16,6 +16,7 @@ function promisifyHook(dockerClient, buildId, command) {
     } else if (data.StatusCode === 0) {
       deferred.resolve();
     } else {
+      logger.error(data);
       deferred.reject(command + ' failed, exited with status code ' + data.StatusCode);
     }
   });  
@@ -43,7 +44,7 @@ hooks.run = function(event, buildId, project, dockerClient, logger) {
     _.each(hooks, function(command) {
       logger.info('[%s] Running %s hook "%s"', buildId, event, command);
       
-      promises.push(promisifyHook(dockerClient, buildId, command));
+      promises.push(promisifyHook(dockerClient, buildId, command, logger));
     });
     
     return Q.all(promises); 
