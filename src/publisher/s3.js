@@ -48,6 +48,8 @@ function uploadDirectoryToS3(options) {
         throw err;
       }
       
+      options.logger.info("[%s] Files to be uploaded to S3: \n%s", options.buildId, files.join("\n"));
+      
       var count = 0;
       
       files.forEach(function(file){
