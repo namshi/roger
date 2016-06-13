@@ -15,7 +15,6 @@ docker.client = new Docker(config.get('docker.client'));
 
 function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, dockerOptions, uuid) {
   return Q.Promise(function(resolve, reject) {
-    delete dockerOptions.dockerfile;
     var extractPath = project.build.extract;
     extractPath += (extractPath[extractPath.length] === '/') ? '.'  : '/.';
     buildLogger.info('Boldly extracting produced stuff form: ', extractPath);
@@ -57,6 +56,7 @@ function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, 
 
         destination.on('finish', function() {
           container.remove(function() {
+            project.build.done = true;
             docker.buildImage(project, srcPath, imageId, buildId, buildLogger, dockerOptions, uuid).then(resolve).catch(reject);
           });
         });
@@ -75,7 +75,11 @@ function extractAndRepackage(project, imageId, builderId, buildId, buildLogger, 
 docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, dockerOptions, uuid) {
   return Q.promise(function(resolve, reject) {
     dockerOptions = dockerOptions || {};
-    var tag = imageId + ((dockerOptions.dockerfile) ? '-builder' : '');
+    var tag = imageId + ((!!project.build && !project.build.done) ? '-builder' : '');
+
+    if (!!project.build && !project.build.done) {
+      dockerOptions.dockerfile = project.build.dockerfile;
+    }
 
     docker.client.buildImage(tarPath, _.extend({t: tag}, dockerOptions), function(err, response) {
       if (err) {
@@ -108,7 +112,8 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, do
       });
 
       response.on('end', function() {
-        if (dockerOptions.dockerfile) {
+        if (!!project.build && !project.build.done) {
+          dockerOptions.dockerfile = project.dockerfile;
           extractAndRepackage(project, imageId, tag, buildId, buildLogger, dockerOptions, uuid).then(resolve);
           return;
         }

@@ -100,8 +100,9 @@ builder.schedule = function(repo, gitBranch, uuid, dockerOptions) {
       project.registry        = project.registry || '127.0.0.1:5000';
 
       console.log('project ' + name + ': ', utils.obfuscate(project));
-      if (!!project.build) {
-        dockerOptions.dockerfile = project.build.dockerfile;
+
+      if (!_.isEmpty(project.build)) {
+        project.build.done = false;
       }
 
       builds.push(builder.build(project, uuid + '-' + project.name, path, gitBranch, branch, dockerOptions));
