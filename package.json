@@ -40,7 +40,7 @@
     "netroute": "^0.2.5",
     "node-dir": "^0.1.15",
     "node-uuid": "^1.4.7",
-    "nodegit": "0.4.1",
+    "nodegit": "^0.14.1",
     "passport": "^0.2.2",
     "passport-github": "^0.1.5",
     "passport-local": "^1.0.0",
