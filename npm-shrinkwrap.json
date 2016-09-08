@@ -151,9 +151,9 @@
       }
     },
     "dockerode": {
-      "version": "2.2.10",
-      "from": "dockerode@2.2.10",
-      "resolved": "https://registry.npmjs.org/dockerode/-/dockerode-2.2.10.tgz",
+      "version": "2.3.1",
+      "from": "dockerode@2.3.1",
+      "resolved": "https://registry.npmjs.org/dockerode/-/dockerode-2.3.1.tgz",
       "dependencies": {
         "docker-modem": {
           "version": "0.3.1",
