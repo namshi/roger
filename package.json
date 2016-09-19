@@ -29,7 +29,7 @@
   "dependencies": {
     "aws-sdk": "^2.1.8",
     "body-parser": "^1.10.2",
-    "dockerode": "2.2.10",
+    "dockerode": "2.3.1",
     "express": "^4.11.1",
     "express-session": "^1.11.3",
     "github": "^0.2.3",
