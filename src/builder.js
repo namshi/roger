@@ -149,7 +149,7 @@ builder.build = function(project, uuid, path, gitBranch, branch, dockerOptions) 
       dockerfilePath = p.join(path, project.dockerfilePath);
     }
 
-    return tar.create(tarPath,  dockerfilePath + '/');
+    return tar.create(tarPath,  dockerfilePath + '/', buildLogger, {buildId: buildId});
   }).then(function() {
     buildLogger.info('[%s] Created tarball for %s', buildId, uuid);
 
