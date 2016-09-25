@@ -1,7 +1,26 @@
 var Q       = require('q');
 var spawn   = require('child_process').spawn;
+var baseTar = require('tar-fs')
 
 var tar = {};
+
+tar.createFromStream = function(path, stream) {
+  stream.pipe(baseTar.extract(path));
+
+  return Q.Promise(function(resolve, reject){
+    stream.on('error', function(err){
+      reject(err);
+    })
+
+    stream.on('end', function(){
+      resolve();
+    });
+
+    stream.on('data', function(){
+      // consuming the stream...
+    });
+  });
+}
 
 /**
  * Creates a tarball at path with the contents

@@ -109,7 +109,9 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, do
 
       response.on('end', function() {
         if (dockerOptions.dockerfile) {
-          extractAndRepackage(project, imageId, tag, buildId, buildLogger, dockerOptions, uuid).then(resolve);
+          extractAndRepackage(project, imageId, tag, buildId, buildLogger, dockerOptions, uuid).then(resolve).catch(function(err){
+            buildLogger.error('[%s] %s', tag, err.message);
+          });
           return;
         }
 
