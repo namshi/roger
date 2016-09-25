@@ -4,3 +4,5 @@ auth:
     email:    someone@gmail.com # your...well, you get it
     password: YOUR_DOCKERHUB_PASSWORD --> see https://github.com/namshi/roger#sensitive-data
   github: YOUR_GITHUB_TOKEN # General token to be used to authenticate to clone any project or comment on PRs (https://github.com/settings/tokens/new)
+  slack:
+    url: 'https://slack-url-with-token.com'

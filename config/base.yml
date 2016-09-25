@@ -3,7 +3,7 @@ app:
   storage: file
 builds:
   concurrent: 5 # max number of builds to run in parallel
-  retry-after: 30 # interval, in seconds, for Roger to check whether it can start queued builds
+  retry-after: 20 # interval, in seconds, for Roger to check whether it can start queued builds
 routes:
   config:           '/api/config'
   projects:         '/api/projects'
@@ -21,3 +21,11 @@ paths:
 docker:
   client:
     socketPath: '/tmp/docker.sock'
+notifications:
+  github:
+    global: 'false'
+  slack:
+    global: 'true'
+    channel: '#builds'
+    icon_emoji: ':robot_face:'
+    username: 'Roger'

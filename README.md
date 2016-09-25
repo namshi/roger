@@ -33,6 +33,7 @@ Ready to hack?
 * [notification](#notifications)
   * [comments on Github pull requests](#pull-requests-on-github)
   * [email (Amazon SES)](#email-through-amazon-ses)
+  * [slack (Builds Channel)](#notification-on-slack)
 * [publishing](#publishing-artifacts)
   * [s3](#s3)
 * [use different images for building and running your app](#use-different-images-for-building-and-running-your-app)
@@ -144,6 +145,7 @@ redis:
   notify:
     - github
     - emailSes
+    - slack
   publish:
     -
       to: s3
@@ -380,6 +382,31 @@ Note that:
 * the `from` address needs to be
 [verified on SES](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html)
 * `committer` is a special value that represents the committer's email
+
+### Notification on Slack
+Once the build is complete, it pushes a notification to a slack channel mentioned in the config
+![slack channel notification](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-slack.png)
+
+To enable slack notification for individual projects the build.yml file can be updated with the slack parameter in the notification block:
+
+``` yaml
+my-project:
+  branch:       master
+  from:         https://github.com/me/awesome-project
+  notify:
+    - slack
+```
+
+for enabling slack notification for all the projects, the base.yml can be updated as:
+
+```
+notifications:
+  slack:
+    global: 'true'
+    channel: '#channel-name'
+    icon_emoji: ':slack-emoji:'
+    username: 'Roger'
+```
 
 ## Publishing artifacts
 
