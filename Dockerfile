@@ -27,4 +27,4 @@ WORKDIR /src
 RUN npm install
 
 EXPOSE  8080
-CMD ["node", "src/index.js", "--config", "/config.yml"]
+CMD ["node", "src/index.js", "--expose-gc", "--config", "/config.yml"]

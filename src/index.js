@@ -6,6 +6,11 @@ var utils   = require('./utils');
 var socket  = require('./socket');
 var auth    = require('./auth');
 
+setInterval(function() {
+  global.gc();
+  console.log(process.memoryUsage())
+}, 10000)
+
 /**
  * Print the config while booting,
  * but omit the sensitive stuff.

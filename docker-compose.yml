@@ -9,7 +9,7 @@ server:
    - ./examples/auth:/auth
    - ./db:/db
    - ./logs:/tmp/roger-builds/logs
-  command: nodemon /src/src/index.js -- --config /config.yml
+  command: nodemon --expose-gc /src/src/index.js -- --config /config.yml
   environment:
     VIRTUAL_HOST: roger.swag
 registry:
