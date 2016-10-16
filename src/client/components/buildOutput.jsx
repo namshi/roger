@@ -57,7 +57,7 @@ class BuildOutput extends React.Component {
   render() {
     return <div>
       <div className="build-output__header">
-        <span className="title">Build Id</span> : <a href="{`/api/builds/${this.props.buildId}/log`}" target="_blank">{this.props.buildId}</a> <br/><br/>
+        <span className="title">Build Id</span> : <a href={`/api/builds/${this.props.buildId}/log`} target="_blank">{this.props.buildId}</a> <br/><br/>
       </div>
       <pre className="build-output__log" ref="output">{this.state.output}</pre>
     </div>;
