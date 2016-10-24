@@ -5,19 +5,16 @@ var baseTar = require('tar-fs')
 var tar = {};
 
 tar.createFromStream = function(path, stream) {
-  stream.pipe(baseTar.extract(path));
+  var extract = baseTar.extract(path);
+  stream.pipe(extract);
 
   return Q.Promise(function(resolve, reject){
     stream.on('error', function(err){
       reject(err);
     })
 
-    stream.on('end', function(){
+    extract.on('finish', function() {
       resolve();
-    });
-
-    stream.on('data', function(){
-      // consuming the stream...
     });
   });
 }
