@@ -1,67 +1,90 @@
 'use strict';
 
 import React from 'react';
-import ss from 'socket.io-stream';
 
 class BuildOutput extends React.Component {
   constructor(...props) {
     super(...props);
-    this.state = {
-      output: 'Loading ...'
-    };
-    this.stream = null;
+    this.state = { autoUpdate: true };
+    this._numberOfTries = 0;
+    this._lastScrollHeight = 0;
+    this.stopTimer = this.stopTimer.bind(this);
   }
 
   componentDidMount() {
-    this.fetchBuildOutput(this.props.buildId);
+    this.updateBuildOutput();
   }
 
   componentWillReceiveProps(props) {
-    this.setState({
-      output: 'Loading ...'
-    });
-
-    this.fetchBuildOutput(props.buildId);
+    this.updateBuildOutput();
   }
 
-  fetchBuildOutput(buildId) {
-    let socket = io.connect();
+  getBuildOutputWindow(){
+    let buildOutputFrame = this.refs.buildOutputFrame.getDOMNode();
+    return buildOutputFrame.contentWindow;
+  }
 
-    if(this.stream) {
-      this.stream.destroy();
+  scrollLogView(){
+    try{
+      let _win = this.getBuildOutputWindow();
+      let scrollHeight = _win.document.body.scrollHeight;
+
+      if(scrollHeight === this._lastScrollHeight ){
+        this._numberOfTries++;
+      } else {
+        this._numberOfTries = 0;
+        this._lastScrollHeight = scrollHeight;
+      }
+
+      if( this._numberOfTries > 100 && this.props.buildStatus !== 'started' ){
+        this.stopTimer();
+        return;
+      }
+
+      if(this.state.autoUpdate){
+        _win.scrollTo(0, scrollHeight);
+      }
+    } catch(e){}
+  }
+
+  updateBuildOutput(){
+    this.stopTimer();
+    this._numberOfTries = 0;
+
+    let runTimer = () => {
+      this.raf = requestAnimationFrame(this.scrollLogView.bind(this));
+      this.tmr = setTimeout( runTimer, 1);
+    };
+
+    runTimer();
+  }
+
+  stopTimer(){
+    clearTimeout(this.tmr);
+    cancelAnimationFrame(this.raf);
+  }
+
+  toggleAutoUpdate(){
+    this.setState({
+      autoUpdate: !this.state.autoUpdate
+    });
+
+    if(this.state.autoUpdate){
+      this.updateBuildOutput();
     }
-
-    let stream = this.stream = ss.createStream();
-
-    ss(socket).emit('get-build-log', stream, {buildId: buildId});
-    let data = '';
-
-    stream.on('data', (chunk)=> {
-      data += chunk.toString();
-      this.updateBuildOutput(data);
-    });
-
-    stream.on('end', function () {
-      console.log('ended');
-    });
-  }
-
-  updateBuildOutput(data) {
-    this.setState({
-      output: data
-    });
-    let elem = this.refs.output.getDOMNode();
-    elem.scrollTop = elem.scrollHeight;
   }
 
   render() {
     return <div>
       <div className="build-output__header">
-        <span className="title">Build Id</span> : <a href="{`/api/builds/${this.props.buildId}/log`}" target="_blank">{this.props.buildId}</a> <br/><br/>
+        <span className="title">Build Id</span> : <a href={`/api/builds/${this.props.buildId}/log`} target="_blank">{this.props.buildId}</a>
+        <span className="auto-update">
+        Auto scroll: <input type="checkbox" checked={this.state.autoUpdate} onChange={this.toggleAutoUpdate.bind(this)} /> </span>
+        <br/><br/>
       </div>
-      <pre className="build-output__log" ref="output">{this.state.output}</pre>
+      <iframe ref="buildOutputFrame" className="build-output__log" src={`/api/builds/${this.props.buildId}/log`} />
     </div>;
   }
 }
 
-export default BuildOutput; 
+export default BuildOutput;
