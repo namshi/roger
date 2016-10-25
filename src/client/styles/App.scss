@@ -56,9 +56,9 @@ html,body{
 }
 
 .build-output,
-.build-output__log {
+{
   background-color: #000;
-  color: lightgreen;
+  position: relative;
 }
 .build-output__header {
   color: #21D4F4;
@@ -66,9 +66,13 @@ html,body{
     color: lightblue;
     font-weight: bold;
   }
+  .auto-update {
+    float: right;
+  }
 }
 .build-output__log {
   width: 100%;
-  max-height: 75vh;
-  overflow: scroll;
+  height: 75vh;
+  border: 2px solid limegreen;
+  background-color: #fff;
 }
