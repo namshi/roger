@@ -72,7 +72,7 @@ function uploadDirectoryToS3(options) {
         f = f.join('/')
         
         options.path = file;
-        options.name = path.join(options.bucketPath, f);
+        options.name = path.join(options.bucketPath || '', f);
         options.logger.info("[%s] Uploading %s in s3://%s/%s", options.buildId, file, options.bucket, options.name);
         
         uploads.push(Q.Promise(function(resolve, reject){
