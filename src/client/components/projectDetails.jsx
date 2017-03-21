@@ -15,6 +15,29 @@ class ProjectDetails extends React.Component {
     this.startBuild = this.startBuild.bind(this);
   }
 
+  customBuild(build){
+    let path = window.prompt(`Enter the name of the branch/tag you need to build.
+
+      Format:
+
+        "Any repo: Any branch/ tag"
+
+      Examples:
+
+        raven: latest
+        my: 5.3.21
+        julia: some-branch-name
+
+    `, `${Utils.getProjectShortName(build.project)}:`);
+
+    let [repo, branch] = ( path || '' ).split(':');
+    if(!repo || !branch) return;
+
+    let urlParts = build.project.split('/');
+    urlParts.splice(urlParts.length-1, 1, repo)
+    actions.startBuild(urlParts.join('/'), branch);
+  }
+
   startBuild(build) {
     let url = Utils.getProjectUrl(build.project);
     actions.startBuild(url, build.branch);
@@ -29,7 +52,7 @@ class ProjectDetails extends React.Component {
       <div className="project-details">
         <div className="container-fluid">
           <div className="row build-header">
-            <div className="col-xs-10 col-md-10">
+            <div className="col-xs-8 col-md-8">
               <h4>
                 {Utils.getProjectShortName(data.name)}
                 <span className="label label-default project-details__build-branch">Branch: {currentBuild.branch}</span>
@@ -39,10 +62,15 @@ class ProjectDetails extends React.Component {
             </div>
             <div className="col-xs-2 col-md-2">
               {
+                !data.buildInProgress && <button className="btn btn-info pull-right" onClick={this.customBuild.bind(this, currentBuild)}>Build new branch/tag</button>
+              }
+            </div>
+            <div className="col-xs-2 col-md-2">
+              {
                 data.buildInProgress ?
-                  <button className="btn btn-info pull-right" disabled>Build initiated ...</button>
+                  <button className="btn btn-warning pull-right" disabled>Build initiated ...</button>
                   :
-                  <button className="btn btn-info pull-right" onClick={this.startBuild.bind(this, currentBuild)}>Build</button>
+                  <button className="btn btn-warning pull-right" onClick={this.startBuild.bind(this, currentBuild)}>Re-Build</button>
               }
             </div>
           </div>
@@ -60,4 +88,4 @@ class ProjectDetails extends React.Component {
   }
 }
 
-export default ProjectDetails; 
+export default ProjectDetails;
