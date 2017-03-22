@@ -23,7 +23,7 @@ class Store {
       return Utility.getProjectUrl(project.name) === projectName;
     });
 
-    project.buildInProgress = true;
+    project && (project.buildInProgress = true);
   }
 
 }
