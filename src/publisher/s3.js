@@ -107,7 +107,8 @@ function uploadDirectoryToS3(options) {
 module.exports = function(dockerClient, buildId, project, logger, options){
   return Q.Promise(function(resolve, reject){
     var command = options.command || "sleep 1"; 
-    
+    console.info('Started publishing to S3');
+    console.info(buildId);
     dockerClient.run(buildId, command.split(' '), process.stdout, function (err, data, container) {
       if (err) {
         reject(err);
@@ -118,7 +119,7 @@ module.exports = function(dockerClient, buildId, project, logger, options){
           logger.info("[%s] Copied %s outside of the container, in %s, preparing to upload it to S3", buildId, options.copy, artifactPath);
           var o = _.clone(options);
           o.buildId = buildId;
-          o.dir     = artifactPath;
+          o.dir     = path.join(artifactPath, options.copy);
           o.logger  = logger;
           
           uploadDirectoryToS3(o).then(function(){
