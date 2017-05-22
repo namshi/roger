@@ -20,13 +20,13 @@ class ProjectDetails extends React.Component {
 
       Format:
 
-        "Any repo: Any branch/ tag"
+        "Any repo:Any branch/ tag"
 
       Examples:
 
-        raven: latest
-        my: 5.3.21
-        julia: some-branch-name
+        raven:latest
+        my:5.3.21
+        julia:some-branch-name
 
     `, `${Utils.getProjectShortName(build.project)}:`);
 
