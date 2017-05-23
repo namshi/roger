@@ -1,6 +1,6 @@
 {
   "name": "roger",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "A build system for dockerized apps. From the ones who tried Jenkins and had their eyes bleed for too long.",
   "main": "src/index.js",
   "scripts": {
