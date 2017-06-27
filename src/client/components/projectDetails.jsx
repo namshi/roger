@@ -30,7 +30,7 @@ class ProjectDetails extends React.Component {
 
     `, `${Utils.getProjectShortName(build.project)}:`);
 
-    let [repo, branch] = ( path || '' ).split(':');
+    let [repo, branch] = ( path || '' ).split(':').map(item => item.trim());
     if(!repo || !branch) return;
 
     let urlParts = build.project.split('/');
