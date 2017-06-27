@@ -602,7 +602,7 @@ At the beginning, Roger only ran via its APIs: once we
 started flirting with the idea of making it public,
 we decided to take some time off and build a small
 frontend with ReactJS, as an experiment -- part of the
-[perks of working at Namshi](http://tech.namshi.com/join-us/) ;-)
+[perks of working at Namshi](http://tech.namshi.io/join-us/) ;-)
 
 Roger has been running without problems for a few months,
 and we're pretty happy with it.
