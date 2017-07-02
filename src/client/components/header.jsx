@@ -10,10 +10,15 @@ class Header extends React.Component {
           <div className="navbar-header">
             <a className="navbar-brand" href="#">{this.props.appName}</a>
           </div>
+          <div className="collapse navbar-collapse">
+              <ul className="nav navbar-nav navbar-right">
+                  <li><a href="/auth/github">Login</a></li>
+              </ul>
+          </div>
         </div>
       </nav>
     )
   }
 }
 
-export default Header; 
+export default Header;

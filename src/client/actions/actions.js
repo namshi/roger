@@ -33,7 +33,7 @@ class Actions {
   }
 
   loadBuilds() {
-    return axios.get('/api/builds?limit=10')
+    return axios.get('/api/builds?limit=100')
       .then(res=> {
         return res.data.builds || [];
       })
