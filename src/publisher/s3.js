@@ -53,24 +53,7 @@ function uploadDirectoryToS3(options) {
       var count = 0;
       
       files.forEach(function(file){
-        /**
-         * Ghetto thing: remove the
-         * first directory from the
-         * file path.
-         * 
-         * If you want to archive the
-         * contents of /a/b the tar library
-         * we're using will create a tar
-         * starting from the b directory.
-         * Since we only want the contents
-         * of b, without b itself, we strip
-         * it out.
-         */
         var f = path.relative(options.dir, file);
-        f = f.split('/')
-        f.shift();
-        f = f.join('/')
-        
         options.path = file;
         options.name = path.join(options.bucketPath || '', f);
         options.logger.info("[%s] Uploading %s in s3://%s/%s", options.buildId, file, options.bucket, options.name);
