@@ -39,7 +39,7 @@ function getAllPullRequests(options) {
   var deferred = Q.defer();
   
   options.client.pullRequests.getAll({
-    user: options.user,
+    owner: options.user,
     repo: options.repo,
     state: 'open'
   }, function(err, pulls){
@@ -64,7 +64,7 @@ function commentOnPullRequest(options) {
   var deferred = Q.defer();
   
   options.client.issues.createComment({
-    user: options.user,
+    owner: options.user,
     repo: options.repo,
     number: options.pr.issue_url.split('/').pop(),
     body: options.comment
@@ -79,6 +79,30 @@ function commentOnPullRequest(options) {
   });
   
   return deferred.promise;
+};
+
+/**
+ * Create status
+ * 
+ * @param options {owner, repo, sha, state, comment, logger}
+ */
+github.createStatus = function(options) {
+  var client = createClient(options.token);
+
+  client.repos.createStatus({
+    owner: options.user,
+    repo: options.repo,
+    sha: options.sha,
+    state: options.status.state,
+    target_url: options.status.target_url,
+    description: options.status.description,
+    context: "continuous-integration/roger",
+  }, function(err, res){
+    if (err) {
+      options.logger.error(err);
+    }
+    return;
+  });
 };
 
 /**

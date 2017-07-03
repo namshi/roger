@@ -140,6 +140,7 @@ builder.build = function(project, uuid, path, gitBranch, branch, dockerOptions) 
     return git.getLastCommit(path, gitBranch);
   }).then(function(commit) {
     author = commit.author().email();
+    sha = commit.sha();
 
     return builder.addRevFile(gitBranch, path, commit, project, buildLogger, {buildId: buildId});
   }).then(function() {
@@ -192,7 +193,7 @@ builder.build = function(project, uuid, path, gitBranch, branch, dockerOptions) 
     }
   }).then(function(result) {
     if (result) {
-      notifications.trigger(project, branch, {author: author, project: project, result: result, logger: buildLogger, uuid: uuid, buildId: buildId});
+      notifications.trigger(project, branch, {author: author, project: project, result: result, logger: buildLogger, uuid: uuid, buildId: buildId, sha: sha});
     }
   }).catch(function(err) {
     buildLogger.error('[%s] Error sending notifications for %s ("%s")', buildId, uuid, err.message || err.error, err.stack);

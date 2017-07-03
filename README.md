@@ -32,6 +32,7 @@ Ready to hack?
   * [github](#github)
 * [notification](#notifications)
   * [comments on Github pull requests](#pull-requests-on-github)
+  * [Github status](##github-statuses)
   * [email (Amazon SES)](#email-through-amazon-ses)
   * [slack (Builds Channel)](#notification-on-slack)
 * [publishing](#publishing-artifacts)
@@ -144,6 +145,7 @@ redis:
     - npm test
   notify:
     - github
+    - githubStatus
     - emailSes
     - slack
   publish:
@@ -184,6 +186,8 @@ auth: # authentication on various providers
   github: YOUR_SECRET_TOKEN # General token to be used to authenticate to clone any project (https://github.com/settings/tokens/new)
 notifications: # configs to notify of build failures / successes
   github: '{{ auth.github }}' # config values can reference other values, this will post a comment on an open PR
+  githubStatus:  # this will create a github status
+    token: '{{ auth.github }}'
   emailSes: # sends an email through amazon SES
     accessKey: 1234
     secret: 5678
@@ -344,6 +348,19 @@ will then update the PR accordingly.
 my-project:
   notify:
     - github
+```
+
+### Github Statuses
+
+This notification creates a [github status](https://developer.github.com/v3/repos/statuses/#create-a-status) based on the commit hash.
+> Using github statuses requires that the github user has [write permission](https://help.github.com/articles/repository-permission-levels-for-an-organization/) to the repository.
+
+![github status](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-github-status.png)
+
+``` yaml
+my-project:
+  notify:
+    - githubStatus
 ```
 
 ### Email (through Amazon SES)
