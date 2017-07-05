@@ -27,9 +27,9 @@
   },
   "homepage": "https://github.com/namshi/roger",
   "dependencies": {
-    "aws-sdk": "^2.1.8",
+    "aws-sdk": "^2.6.4",
     "body-parser": "^1.10.2",
-    "dockerode": "2.3.1",
+    "dockerode": "2.4.3",
     "express": "^4.11.1",
     "express-session": "^1.11.3",
     "github": "^0.2.3",
