@@ -154,11 +154,11 @@ builder.build = function(project, uuid, path, gitBranch, branch, dockerOptions) 
     buildLogger.info('[%s] Created tarball for %s', buildId, uuid);
 
     return docker.buildImage(project, tarPath, imageId + ':' + branch, buildId, buildLogger, dockerOptions, uuid);
-  }).then(function() {
-    buildLogger.info('[%s] %s built succesfully', buildId, uuid);
-    buildLogger.info('[%s] Tagging %s', buildId, uuid);
+  }).then(function(realBuildId) {
+    buildLogger.info('[%s] %s built succesfully as imageId: %s', buildId, uuid, realBuildId);
+    buildLogger.info('[%s] Tagging %s as imageId: %s', buildId, uuid, realBuildId);
 
-    return docker.tag(imageId, buildId, branch, buildLogger);
+    return docker.tag(imageId, realBuildId, branch, buildLogger);
   }).then(function(image) {
     return publisher.publish(docker.client, buildId, project, buildLogger).then(function() {
       return image;

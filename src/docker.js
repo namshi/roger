@@ -76,6 +76,7 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, do
   return Q.promise(function(resolve, reject) {
     dockerOptions = dockerOptions || {};
     var tag = imageId + ((dockerOptions.dockerfile) ? '-builder' : '');
+    var realBuildId = buildId;
 
     docker.client.buildImage(tarPath, _.extend({t: tag}, dockerOptions), function(err, response) {
       if (err) {
@@ -105,6 +106,9 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, do
         }
 
         buildLogger.info('[%s] %s', tag, result.stream || result.status);
+        if (result.stream && result.stream.indexOf('Successfully built ') == 0) {
+          realBuildId = result.stream.split('Successfully built ')[1].replace('\n', '');
+        }
       });
 
       response.on('end', function() {
@@ -115,7 +119,7 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, do
           return;
         }
 
-        resolve();
+        resolve(realBuildId);
       });
     });
   });
@@ -128,10 +132,10 @@ docker.buildImage = function(project, tarPath, imageId, buildId, buildLogger, do
  */
 docker.tag = function(imageId, buildId, branch) {
   var deferred  = Q.defer();
-  var image     = docker.client.getImage(imageId);
+  var image     = docker.client.getImage(buildId);
 
   image.tag({repo: imageId, tag: branch}, function() {
-    deferred.resolve(image);
+    deferred.resolve(docker.client.getImage(imageId));
   });
 
   return deferred.promise;
