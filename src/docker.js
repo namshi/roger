@@ -233,7 +233,7 @@ docker.push = function(image, buildId, uuid, branch, registry, buildLogger) {
  */
 docker.copy = function(container, containerPath, hostPath) {
   return Q.Promise(function(resolve, reject) {
-    container.copy({Resource: containerPath}, function(err, data) {
+    container.export(function(err, data) {
       if (err) {
         reject(err);
         return;
