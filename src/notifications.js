@@ -38,8 +38,8 @@ notifications.trigger = function(project, branch, options){
     _.each(project.notify, function(handler){
       options.author    = options.author;
       options.branch    = branch;
-      options.status    = status;
       options.comments  = _.clone(comments);
+      options.status    = status;
 
       var notificationOptions = (project.notify && project.notify[handler]) || config.get('notifications.' + handler);
 

@@ -24,11 +24,9 @@ docker:
 notifications:
   github:
     global: 'false'
+    token: '{{ auth.github }}'
   slack:
     global: 'true'
     channel: '#builds'
     icon_emoji: ':robot_face:'
     username: 'Roger'
-  githubStatus:
-    global: 'false'
-    token: '{{ auth.github }}'
