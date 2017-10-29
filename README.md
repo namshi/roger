@@ -31,7 +31,7 @@ Ready to hack?
 * [build hooks](#build-hooks)
   * [github](#github)
 * [notification](#notifications)
-  * [comments on Github pull requests](#pull-requests-on-github)
+  * [Github status](##github-statuses)
   * [email (Amazon SES)](#email-through-amazon-ses)
   * [slack (Builds Channel)](#notification-on-slack)
 * [publishing](#publishing-artifacts)
@@ -183,7 +183,8 @@ auth: # authentication on various providers
     password: YOUR_DOCKERHUB_PASSWORD
   github: YOUR_SECRET_TOKEN # General token to be used to authenticate to clone any project (https://github.com/settings/tokens/new)
 notifications: # configs to notify of build failures / successes
-  github: '{{ auth.github }}' # config values can reference other values, this will post a comment on an open PR
+  github: # this will create a github status
+    token: '{{ auth.github }}'  # config values can reference other values
   emailSes: # sends an email through amazon SES
     accessKey: 1234
     secret: 5678
@@ -329,16 +330,12 @@ comment on a PR with the text `build please!`.
 Once your build finishes, you can notify
 *someone* about its result (ie. success / failure).
 
-### Pull requests on Github
+### Github Statuses
 
-This notification lets you update the status of a PR
-by commenting on it.
+This notification creates a [github status](https://developer.github.com/v3/repos/statuses/#create-a-status) based on the commit hash.
+> Using github statuses requires that the github user has [write permission](https://help.github.com/articles/repository-permission-levels-for-an-organization/) to the repository.
 
-![comment on pull requests](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-github.png)
-
-If you have a PR from the branch `my-patch`
-open and roger is building that branch, it
-will then update the PR accordingly.
+![github status](https://raw.githubusercontent.com/namshi/roger/master/bin/images/notification-github.png)
 
 ``` yaml
 my-project:

@@ -30,55 +30,29 @@ function getPullRequest(token, user, repo, number) {
 }
 
 /**
- * Returns all open pull requests for a
- * given repo.
+ * Create status
  * 
- * @param options {user, repo}
+ * @param options {owner, repo, sha, state, comment, logger}
  */
-function getAllPullRequests(options) {
-  var deferred = Q.defer();
-  
-  options.client.pullRequests.getAll({
-    user: options.user,
-    repo: options.repo,
-    state: 'open'
-  }, function(err, pulls){
-    if (err) {
-      deferred.reject(err);
-      
-      return;
-    }
-    
-    deferred.resolve(pulls);
-  })
-  
-  return deferred.promise;
-};
+github.createStatus = function(options) {
+  var client = createClient(options.token);
 
-/**
- * Comments on a PR.
- * 
- * @param options {pr, buildId, uuid, user, repo, comment, logger}
- */
-function commentOnPullRequest(options) {
-  var deferred = Q.defer();
-  
-  options.client.issues.createComment({
-    user: options.user,
+  client.repos.createStatus({
+    owner: options.user,
     repo: options.repo,
-    number: options.pr.issue_url.split('/').pop(),
-    body: options.comment
-  }, function(err, data){
+    sha: options.sha,
+    state: options.status.state,
+    target_url: options.status.target_url,
+    description: options.status.description,
+    context: "continuous-integration/roger",
+  }, function(err, res){
     if (err) {
-      promise.reject(err);
-      
+      options.logger.error(err);
       return;
-    } else {
-      deferred.resolve();
     }
+    options.logger.info('[%s] Created github status for build %s', options.buildId, options.uuid);
+    return;
   });
-  
-  return deferred.promise;
 };
 
 /**
@@ -95,33 +69,6 @@ function createClient(token) {
   
   return client;
 }
-
-/**
- * Comments on a pull request opened from
- * the given branch.
- * 
- * If multiple PRs are open from the same
- * branch, multiple comments are posted.
- * 
- * @param options {branch, comment, buildId, uuid, token, comment, logger, token}
- */
-github.commentOnPullRequestByBranch = function(options) {
-  options.client = createClient(options.token);
-  
-  getAllPullRequests(options).then(function(pulls){
-    _.each(pulls, function(pr){
-      if (pr.head.ref === options.branch) {
-        options.pr = pr;
-        
-        commentOnPullRequest(options).then(function(){
-          options.logger.info('[%s] Commented on PR %s', options.buildId, pr.html_url);
-        });
-      }
-    })
-  }).catch(function(err){
-    options.logger.error(err);
-  });
-};
 
 /**
  * Extract the projects referred

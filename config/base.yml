@@ -24,6 +24,7 @@ docker:
 notifications:
   github:
     global: 'false'
+    token: '{{ auth.github }}'
   slack:
     global: 'true'
     channel: '#builds'
