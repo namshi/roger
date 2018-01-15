@@ -5,7 +5,7 @@ var baseTar = require('tar-fs')
 var tar = {};
 
 tar.createFromStream = function(path, stream) {
-  var extract = baseTar.extract(path);
+  var extract = baseTar.extract(path, {strict: false});
   stream.pipe(extract);
 
   return Q.Promise(function(resolve, reject){

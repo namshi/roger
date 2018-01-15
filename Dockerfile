@@ -1,4 +1,4 @@
-FROM node:0.12
+FROM node:8
 
 MAINTAINER Alessandro Nadalin "alessandro.nadalin@gmail.com"
 
@@ -16,8 +16,6 @@ RUN mkdir /tmp/roger-builds/tars
 RUN mkdir /tmp/roger-builds/sources
 
 COPY . /src
-
-RUN npm cache clean
 
 WORKDIR /src/src/client
 RUN npm install
