@@ -117,7 +117,7 @@ file.getProjects = function(limit) {
       });
     });
 
-    resolve(_.uniq(projects.slice(0, limit), 'name'));
+    resolve(_.uniq(projects, 'name').slice(0, limit));
   });
 };
 

@@ -131,6 +131,7 @@ builder.build = function(project, uuid, path, gitBranch, branch, dockerOptions) 
   var buildId     = imageId + ':' + branch;
   var author      = 'unknown@unknown.com';
   var now         = moment();
+  var sha         = '';
 
   storage.saveBuild(uuid, buildId, project.id, branch, 'queued').then(function() {
     return builder.hasCapacity();
@@ -152,6 +153,18 @@ builder.build = function(project, uuid, path, gitBranch, branch, dockerOptions) 
 
     return tar.create(tarPath,  dockerfilePath + '/', buildLogger, {buildId: buildId});
   }).then(function() {
+    var dockerfilePath = path;
+
+    if (project.dockerfilePath) {
+      dockerfilePath = p.join(path, project.dockerfilePath);
+    }
+    var dockerFile = dockerfilePath + '/Dockerfile';
+    buildLogger.info('docker file path %s ', dockerFile);
+
+    return docker.extractFromImageName(dockerFile);
+  }).then(function(from) {
+    return docker.pullImage(buildId, from, imageId, dockerOptions, buildLogger);
+  }).then(function() {
     buildLogger.info('[%s] Created tarball for %s', buildId, uuid);
 
     return docker.buildImage(project, tarPath, imageId + ':' + branch, buildId, buildLogger, dockerOptions, uuid);
@@ -159,7 +172,7 @@ builder.build = function(project, uuid, path, gitBranch, branch, dockerOptions) 
     buildLogger.info('[%s] %s built succesfully as imageId: %s', buildId, uuid, realBuildId);
     buildLogger.info('[%s] Tagging %s as imageId: %s', buildId, uuid, realBuildId);
 
-    return docker.tag(imageId, realBuildId, branch, buildLogger);
+    return docker.tag(imageId, buildId, branch);
   }).then(function(image) {
     return publisher.publish(docker.client, buildId, project, buildLogger).then(function() {
       return image;

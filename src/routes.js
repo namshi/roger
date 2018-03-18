@@ -180,7 +180,7 @@ routes.bind = function(app) {
   app.get(router.generate('build'), auth.authorize, routes.singleBuild);
   app.get(router.generate('build-log'), auth.authorize, routes.buildLog);
   app.post(router.generate('build-project'), auth.authorize, routes.build);
-  app.post(router.generate('github-hooks'), auth.authorize, routes.buildFromGithubHook);
+  app.post(router.generate('github-hooks'), routes.buildFromGithubHook);
   app.get(router.generate('build-project'), auth.authorize, routes.build);
 
   app.use('/', express.static(path.join(__dirname, 'client/dist')));

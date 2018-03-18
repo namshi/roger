@@ -42,7 +42,7 @@
     "node-uuid": "^1.4.7",
     "nodegit": "^0.20.1",
     "passport": "^0.2.2",
-    "passport-github": "^0.1.5",
+    "passport-github2": "^0.1.10",
     "passport-local": "^1.0.0",
     "q": "^1.1.2",
     "reconfig": "^1.5.1",
