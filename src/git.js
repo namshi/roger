@@ -4,16 +4,27 @@ var utils   = require("./utils");
 var Git     = require("nodegit");
 var git     = {};
 
+let getTag = function (repo, branch) {
+  return repo.getTagByName(branch)
+    .then(function (tag) {
+      return tag.owner().getCommit(tag.targetId());
+    });
+};
+
 /**
  * Returns the last commit made in the repo
  * on the given branch.
  */
-git.getLastCommit = function(repository, branch) {
+git.getLastCommit = function (repository, branch) {
   return Git.Repository.open(repository)
-  .then(function(repo) {
-    return repo.getBranchCommit(branch);
-  });
-}
+    .then(function (repo) {
+      return repo.getBranchCommit(branch)
+        .catch(function () {
+          // getBranchCommit fails in case "branch" is an annotated tag
+          return getTag(repo, branch);
+        });
+    })
+};
 
 /**
  * Clones the repository at the specified path,
