@@ -14,7 +14,7 @@ function getPullRequest(token, user, repo, number) {
   var client = createClient(token);
   
   client.pullRequests.get({
-    user: user,
+    owner: user,
     repo: repo,
     number: number
   }, function(err, pr){
