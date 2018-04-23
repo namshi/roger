@@ -117,7 +117,7 @@ github.getBuildInfoFromHook = function(req) {
       var nr    = payload.issue.pull_request.url.split('/').pop();
       
       getPullRequest(githubToken, user, repo, nr).then(function(pr){
-        info.branch = pr.head.ref;
+        info.branch = pr.data.head.ref;
         deferred.resolve(info);
       }).catch(function(err){
         logger.error('Error while retrieving PR from github ("%s")', err.message);
