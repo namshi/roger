@@ -4,6 +4,7 @@ var path        = require('path');
 var growingFile = require('growing-file');
 var dispatcher  = require('./dispatcher');
 var utils       = require('./utils');
+var config      = require('./config');
 
 module.exports = function (server) {
   var io = require('socket.io')(server);
@@ -12,18 +13,11 @@ module.exports = function (server) {
   io.on('connection', function (socket) {
     console.log('websocket connected');
 
-    /* For sending the build file*/
-    ss(socket).on('get-build-log', function (stream, data) {
-      var logFile = path.join(utils.path('logs'), data.buildId + '.log');
-      var growingStream = {};
-
-      if (fs.existsSync(logFile)) {
-        growingStream = growingFile.open(logFile, {timeout: 300000, interval: 1000});
-        growingStream.pipe(stream);
-        growingStream.on('end', function() {
-          console.log('stream is closed');
-        });
-      }
+   io.origins((origin, callback) => {
+        if (origin !== config.get('app.url') + '/') {
+            return callback('origin not allowed', false);
+        }
+      callback(null, true);
     });
 
     /* When the projects db updated*/
