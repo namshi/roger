@@ -173,6 +173,7 @@ need to mount in the container:
 app: # generic settings
   url: 'https://builds.yourcompany.com' # optional, just used for logging
   auth: ~ # authentication turned off by default, see next paragraph
+  defaultRegistry: registry.company.com # the default registry to use, ie. 127.0.0.1:5000
 builds:
   concurrent: 5 # max number of builds to run in parallel, use ~ to disable
   retry-after: 30 # interval, in seconds, for Roger to check whether it can start queued builds
