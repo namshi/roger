@@ -1,4 +1,5 @@
-db
+db/*
+!db/.gitkeep
 node_modules
 registry
 .idea

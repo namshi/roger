@@ -14,8 +14,6 @@ RUN npm install -g nodemon \
         && mkdir /tmp/roger-builds/tars \
         && mkdir /tmp/roger-builds/sources
 
-COPY ./db /db
-
 COPY ./src/client/package.json /src/src/client/
 COPY ./src/client/package-lock.json /src/src/client/
 WORKDIR /src/src/client
@@ -30,6 +28,8 @@ COPY . /src
 
 WORKDIR /src/src/client
 RUN npm run build
+
+COPY ./db /db
 
 WORKDIR /src
 
