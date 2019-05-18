@@ -5,14 +5,17 @@ var Git     = require("nodegit");
 var git     = {};
 
 /**
- * Returns the last commit made in the repo
- * on the given branch.
+ * Get a nodegit commit object from a reference name
+ * @param  {string} path - The path to the Git repository
+ * @param  {string} name - The name of the reference to get
+ * @return {promise}     - A promise that resolves to the commit
  */
-git.getLastCommit = function(repository, branch) {
-  return Git.Repository.open(repository)
+git.getCommit = function(path, name) {
+  branch = 'refs/heads/master'
+  return Git.Repository.open(path)
     .then(function(repo) {
-      // Look up the branch or tag by its short name
-      return Git.Reference.dwim(repo, branch)
+      // Look up the branch or tag by its name
+      return Git.Reference.dwim(repo, name)
         .then(function(ref) {
           // Convert tags to commit objects
           return ref.peel(Git.Object.TYPE.COMMIT)
