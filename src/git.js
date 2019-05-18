@@ -17,12 +17,12 @@ git.getCommit = function(path, name) {
       return Git.Reference.dwim(repo, name)
         .then(function(ref) {
           // Convert tags to commit objects
-          return ref.peel(Git.Object.TYPE.COMMIT)
+          return ref.peel(Git.Object.TYPE.COMMIT);
         })
         .then(function(ref) {
           // Get the commit object from the repo
-          return Git.Commit.lookup(repo, ref.id())
-        })
+          return Git.Commit.lookup(repo, ref.id());
+        });
   });
 }
 
