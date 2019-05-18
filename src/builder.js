@@ -138,7 +138,7 @@ builder.build = function(project, uuid, path, gitBranch, branch, dockerOptions) 
   }).then(function() {
     return storage.saveBuild(uuid, buildId, project.id, branch, 'started');
   }).then(function() {
-    return git.getLastCommit(path, gitBranch);
+    return git.getCommit(path, gitBranch);
   }).then(function(commit) {
     author = commit.author().email();
     sha = commit.sha();
