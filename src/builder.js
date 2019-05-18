@@ -90,7 +90,16 @@ builder.schedule = function(repo, gitBranch, uuid, dockerOptions) {
 
       return buildConfig;
     }
-  }).then(function(projects) {
+  }).then(async function(config) {
+    const { settings, ...projects } = config;
+
+    // Check branch name matches rules
+    const match = await builder.matchBranchName(settings, gitBranch, path)
+    if (!match) {
+      logger.info('The branch name didn\'t match the defined rules')
+      return builds;
+    }
+
     _.each(projects, function(project, name) {
       project.id              = repo + '__' + name;
       project.name            = name;
@@ -291,5 +300,42 @@ storage.getPendingBuilds().then(function(builds) {
     storage.saveBuild(staleBuild.id, staleBuild.tag, staleBuild.project, staleBuild.branch, 'failed');
   });
 });
+
+/**
+ * Checks branch name against settings match rules
+ * @param  {object} settings - The global settings key from build.yml
+ * @param  {string} name     - The name of the branch to be built
+ * @param  {string} path     - The path to the Git repository
+ * @return {boolean}         - The result of the check, true if match is found
+ */
+builder.matchBranchName = async function(settings, name, path) {
+  // Default settings match all branches
+  if (!settings || !settings.match) {
+    return true;
+  }
+
+  const { branches, patterns, tags } = settings.match;
+
+  // Allow exact branch names
+  if (branches && branches.includes(name)) {
+    return true;
+  }
+
+  // Allow tags when enabled
+  if (tags === true && await git.getRefType(path, name) === 'tag') {
+    return true;
+  }
+
+  // Allow any name that matches a regex pattern
+  if (patterns && _.some(patterns, function(pattern) {
+      const regex = new RegExp(pattern);
+      return regex.test(name);
+    })) {
+    return true;
+  }
+
+  // Disallow if no sub-keys are defined
+  return false;
+}
 
 module.exports = builder;

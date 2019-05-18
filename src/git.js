@@ -27,6 +27,29 @@ git.getCommit = function(path, name) {
 }
 
 /**
+ * Check the type of the specified reference name
+ * @param  {string} path - The path to the Git repository
+ * @param  {string} name - The name of the reference to check
+ * @return {promise}     - A promise that resolves to the result,
+ *                         either 'tag', 'branch', or 'commit'
+ */
+git.getRefType = function(path, name) {
+  return Git.Repository.open(path)
+    then(function(repo) {
+      return Git.Reference.dwim(repo, name)
+        .then(function(ref) {
+          if (ref.isTag()) {
+            return 'tag';
+          }
+          if (ref.isBranch()) {
+            return 'branch';
+          }
+          return 'commit';
+        });
+    });
+}
+
+/**
  * Clones the repository at the specified path,
  * only fetching a specific branch -- which is
  * the one we want to build.
