@@ -10,8 +10,17 @@ var git     = {};
  */
 git.getLastCommit = function(repository, branch) {
   return Git.Repository.open(repository)
-  .then(function(repo) {
-    return repo.getBranchCommit(branch);
+    .then(function(repo) {
+      // Look up the branch or tag by its short name
+      return Git.Reference.dwim(repo, branch)
+        .then(function(ref) {
+          // Convert tags to commit objects
+          return ref.peel(Git.Object.TYPE.COMMIT)
+        })
+        .then(function(ref) {
+          // Get the commit object from the repo
+          return Git.Commit.lookup(repo, ref.id())
+        })
   });
 }
 
