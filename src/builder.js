@@ -47,13 +47,14 @@ var builder = {};
  * file, then trigger as many builds as we find
  * in the configured build.yml.
  *
- * @param  {string} repo
- * @param  {string} gitBranch
- * @param  {string} uuid
- * @param  {object} dockerOptions
+ * @param  {string}  repo
+ * @param  {string}  gitBranch
+ * @param  {string}  uuid
+ * @param  {object}  dockerOptions
+ * @param  {boolean} checkBranch - Enable branch checking by setting to true
  * @return {void}
  */
-builder.schedule = function(repo, gitBranch, uuid, dockerOptions) {
+builder.schedule = function(repo, gitBranch, uuid, dockerOptions, checkBranch = false) {
   var path        = p.join(utils.path('sources'), uuid);
   var branch      = gitBranch;
   var builds      = [];
@@ -94,8 +95,8 @@ builder.schedule = function(repo, gitBranch, uuid, dockerOptions) {
     const { settings, ...projects } = config;
 
     // Check branch name matches rules
-    const match = await builder.matchBranchName(settings, gitBranch, path)
-    if (!match) {
+    const matchedBranch = !checkBranch || await builder.matchBranchName(settings, gitBranch, path)
+    if (!matchedBranch) {
       logger.info('The branch name didn\'t match the defined rules')
       return builds;
     }
