@@ -106,7 +106,8 @@ github.getBuildInfoFromHook = function(req) {
   
   if (repo) {
     if (req.headers['x-github-event'] === 'push') {
-      info.branch  = payload.ref.replace(/^.+\//, '');
+      // Remove leading /refs/*/ from branch or tag name
+      info.branch  = payload.ref.replace(/^refs\/[^\/]+\//, '');
       deferred.resolve(info);
     } else if (req.headers['x-github-event'] === 'create' && payload.ref_type === 'tag') {
       info.branch = payload.ref
