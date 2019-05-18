@@ -311,11 +311,11 @@ storage.getPendingBuilds().then(function(builds) {
  */
 builder.matchBranchName = async function(settings, name, path) {
   // Default settings match all branches
-  if (!settings || !settings.match) {
+  if (!settings || !settings.matching) {
     return true;
   }
 
-  const { branches, patterns, tags } = settings.match;
+  const { branches, patterns, tags } = settings.matching;
 
   // Allow exact branch names
   if (branches && branches.includes(name)) {
