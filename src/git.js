@@ -11,7 +11,6 @@ var git     = {};
  * @return {promise}     - A promise that resolves to the commit
  */
 git.getCommit = function(path, name) {
-  branch = 'refs/heads/master'
   return Git.Repository.open(path)
     .then(function(repo) {
       // Look up the branch or tag by its name
