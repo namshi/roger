@@ -79,21 +79,21 @@ builder.schedule = function(repo, gitBranch, uuid, dockerOptions, checkBranch = 
       return yaml.safeLoad(fs.readFileSync(p.join(path, 'build.yml'), 'utf8'));
     } catch(err) {
       logger.error(err.toString(), err.stack);
-
-      /**
-       * In case the .build.yml is not found, let's build
-       * the smallest possible configuration for the current
-       * build: we will take the repo name and build this
-       * project, ie github.com/antirez/redis will build
-       * under the name "redis".
-       */
-      var buildConfig = {};
-      buildConfig[cloneUrl.split('/').pop()] = {};
-
-      return buildConfig;
+      return {};
     }
   }).then(async function(config) {
     const { settings, ...projects } = config;
+
+    /**
+     * In case no projects are defined, let's build
+     * the smallest possible configuration for the current
+     * build: we will take the repo name and build this
+     * project, ie github.com/antirez/redis will build
+     * under the name "redis".
+     */
+    if (Object.keys(projects).length === 0) {
+      projects[cloneUrl.split('/').pop()] = {};
+    }
 
     // Check branch name matches rules
     const matchedBranch = !checkBranch || await matching.checkNameRules(settings, gitBranch, path);
