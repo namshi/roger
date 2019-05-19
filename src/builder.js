@@ -10,6 +10,7 @@ var fs              = require('fs');
 var p               = require('path');
 var moment          = require('moment');
 var git             = require('./git');
+var matching        = require('./matching');
 var tar             = require('./tar');
 var url             = require('url');
 var _               = require('lodash');
@@ -47,13 +48,14 @@ var builder = {};
  * file, then trigger as many builds as we find
  * in the configured build.yml.
  *
- * @param  {string} repo
- * @param  {string} gitBranch
- * @param  {string} uuid
- * @param  {object} dockerOptions
+ * @param  {string}  repo
+ * @param  {string}  gitBranch
+ * @param  {string}  uuid
+ * @param  {object}  dockerOptions
+ * @param  {boolean} checkBranch - Enable branch checking by setting to true
  * @return {void}
  */
-builder.schedule = function(repo, gitBranch, uuid, dockerOptions) {
+builder.schedule = function(repo, gitBranch, uuid, dockerOptions, checkBranch = false) {
   var path        = p.join(utils.path('sources'), uuid);
   var branch      = gitBranch;
   var builds      = [];
@@ -77,20 +79,29 @@ builder.schedule = function(repo, gitBranch, uuid, dockerOptions) {
       return yaml.safeLoad(fs.readFileSync(p.join(path, 'build.yml'), 'utf8'));
     } catch(err) {
       logger.error(err.toString(), err.stack);
-
-      /**
-       * In case the .build.yml is not found, let's build
-       * the smallest possible configuration for the current
-       * build: we will take the repo name and build this
-       * project, ie github.com/antirez/redis will build
-       * under the name "redis".
-       */
-      var buildConfig = {};
-      buildConfig[cloneUrl.split('/').pop()] = {};
-
-      return buildConfig;
+      return {};
     }
-  }).then(function(projects) {
+  }).then(async function(buildConfig) {
+    const { settings, ...projects } = buildConfig;
+
+    /**
+     * In case no projects are defined, let's build
+     * the smallest possible configuration for the current
+     * build: we will take the repo name and build this
+     * project, ie github.com/antirez/redis will build
+     * under the name "redis".
+     */
+    if (Object.keys(projects).length === 0) {
+      projects[cloneUrl.split('/').pop()] = {};
+    }
+
+    // Check branch name matches rules
+    const matchedBranch = !checkBranch || await matching.checkNameRules(settings, gitBranch, path);
+    if (!matchedBranch) {
+      logger.info('The branch name didn\'t match the defined rules');
+      return builds;
+    }
+
     _.each(projects, function(project, name) {
       project.id              = repo + '__' + name;
       project.name            = name;

@@ -105,7 +105,7 @@ routes.config = function(req, res, next) {
  */
 routes.buildFromGithubHook = function(req, res) {
   github.getBuildInfoFromHook(req).then(function(info){
-    builder.schedule(info.repo, info.branch || "master", uuid.v4())
+    builder.schedule(info.repo, info.branch || "master", uuid.v4(), null, true);
 
     res.status(202).send({message: "builds triggered", info: info});
     return;

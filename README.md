@@ -164,6 +164,46 @@ redis-server:
   dockerfilePath: server/src
 ```
 
+#### Branch and tag filtering
+
+Want to only build from specific branches or tags? Builds that are started automatically by a webhook (see [build hooks](#build-hooks) below), can be filtered, based on the name of the branch or tag sent by the webhook. Webhooks that don't match the rules will not cause a build to be scheduled.
+
+Matching rules can be configured with one or more of the following properties:
+
+- **branches**: An array of branch names that should be built
+- **patterns**: An array of JavaScript-compatible regular expressions for matching branch and tag names to be built
+- **tags**: A boolean allowing all tags to be built when set to `true`
+
+The following example will allow the branches `develop` and `master` to be built, as well as any branch or tag matching the regular expression `v\d+\.\d+\.\d+$`, which looks for a version number in the form `v1.0.0`.
+
+```yaml
+redis:
+  registry: dockerhub
+
+settings:
+  matching:
+    branches:
+      - master
+      - develop
+    patterns:
+      - ^v\d+\.\d+\.\d+$
+```
+
+The following example will allow the `master` branch, plus all tags to be built:
+
+```yaml
+redis:
+  registry: dockerhub
+
+settings:
+  matching:
+    branches:
+      - master
+    tags: true
+```
+
+Note that filtering only applies to webhook builds, and only when the `matching` options are configured. Builds scheduled using the web UI or the `api/build` endpoint are not affected by these filters.
+
 ### Server configuration
 
 Roger will read a `/config.yml` file that you
