@@ -81,8 +81,8 @@ builder.schedule = function(repo, gitBranch, uuid, dockerOptions, checkBranch = 
       logger.error(err.toString(), err.stack);
       return {};
     }
-  }).then(async function(config) {
-    const { settings, ...projects } = config;
+  }).then(async function(buildConfig) {
+    const { settings, ...projects } = buildConfig;
 
     /**
      * In case no projects are defined, let's build
