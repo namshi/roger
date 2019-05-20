@@ -62,6 +62,12 @@ builder.schedule = function(repo, gitBranch, uuid, dockerOptions, checkBranch = 
   var cloneUrl    = repo;
   dockerOptions   = dockerOptions || {};
 
+  // Remove leading 'v' from semantic version tags
+  if (config.get('tagging.cleanVersionTags') === true
+    && branch.match(/^[vV]\d+\.\d+\.\d+/)) {
+    branch = gitBranch.replace(/^[vV]/, '');
+  }
+
   if (branch === 'master') {
     branch = 'latest';
   }
