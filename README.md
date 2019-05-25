@@ -242,6 +242,8 @@ docker:
     host: __gateway__ # this is a special value that will resolve to the gateway through netroute (http://npmjs.org/package/netroute)
     port: 2375
     protocol: http
+tagging:
+  cleanVersionTags: true # setting this to true will remove a leading 'v' from semantic version Git tags
 ```
 
 ### Configuring auth
