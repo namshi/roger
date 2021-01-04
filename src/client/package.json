@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "alt": "^0.16.10",
-    "axios": "^0.5.4",
+    "axios": "^0.21.1",
     "lodash": "^3.9.3",
     "moment": "^2.10.3",
     "react": "^0.13.3",
