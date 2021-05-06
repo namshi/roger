@@ -35,7 +35,7 @@
     "github": "^9.2.0",
     "growing-file": "^0.1.3",
     "js-yaml": "^3.2.5",
-    "lodash": "^2.4.1",
+    "lodash": "^4.17.21",
     "moment": "^2.9.0",
     "netroute": "^1.0.2",
     "node-dir": "^0.1.15",
