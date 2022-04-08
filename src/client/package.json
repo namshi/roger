@@ -12,7 +12,7 @@
     "alt": "^0.16.10",
     "axios": "^0.5.4",
     "lodash": "^3.9.3",
-    "moment": "^2.10.3",
+    "moment": "^2.29.2",
     "react": "^0.13.3",
     "react-router": "^0.13.3",
     "socket.io-stream": "^0.8.0"
