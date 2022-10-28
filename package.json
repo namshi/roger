@@ -48,7 +48,7 @@
     "reconfig": "^1.5.1",
     "s3": "^4.4.0",
     "slack-notify": "^0.1.6",
-    "socket.io": "^1.4.0",
+    "socket.io": "^4.5.3",
     "socket.io-stream": "^0.8.0",
     "tar-fs": "^1.4.2",
     "winston": "^0.8.3",
