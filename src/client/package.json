@@ -18,8 +18,8 @@
     "socket.io-stream": "^0.8.0"
   },
   "devDependencies": {
-    "babel-core": "^5.5.8",
-    "babel-loader": "^5.1.4",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^9.0.1",
     "css-loader": "^0.15.1",
     "extract-text-webpack-plugin": "^0.8.2",
     "file-loader": "^0.8.4",
