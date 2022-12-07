@@ -30,7 +30,7 @@
     "aws-sdk": "^2.6.4",
     "body-parser": "^1.10.2",
     "dockerode": "2.4.3",
-    "express": "^4.11.1",
+    "express": "^4.17.3",
     "express-session": "^1.11.3",
     "github": "^9.2.0",
     "growing-file": "^0.1.3",
